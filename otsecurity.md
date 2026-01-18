@@ -112,35 +112,38 @@ process_points = [
 
 #### c) **Physical Connection Architecture**
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    CONTROL CENTER                           │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐                  │
-│  │  SCADA   │  │   HMI    │  │ Historian│                  │
-│  │ Server   │  │ Station  │  │  Server  │                  │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘                  │
-│       │             │             │                         │
-│       └─────────────┼─────────────┘                         │
-│                     │                                       │
-│              ┌──────┴──────┐                                │
-│              │  Industrial │                                │
-│              │   Switch    │                                │
-│              └──────┬──────┘                                │
-└──────────────────────┼──────────────────────────────────────┘
-                       │
-         ┌─────────────┼─────────────┐
-         │             │             │
-    ┌────┴────┐  ┌────┴────┐  ┌────┴────┐
-    │   PLC   │  │   RTU   │  │ Safety  │
-    │192.168. │  │192.168. │  │  PLC    │
-    │ 95.2    │  │ 95.5    │  │192.168. │
-    └────┬────┘  └────┬────┘  │ 95.7    │
-         │            │       └────┬────┘
-    ┌────┴────┐  ┌────┴────┐       │
-    │I/O Rack │  │  VFD    │  ┌────┴────┐
-    │  Field  │  │ Panel   │  │ Safety  │
-    │ Sensors │  │         │  │ Sensors │
-    └─────────┘  └─────────┘  └─────────┘
+```mermaid
+flowchart TB
+    subgraph CONTROL["🏢 CONTROL CENTER"]
+        SCADA["📡 SCADA Server<br/>192.168.95.4"]
+        HMI["🖥️ HMI Station<br/>192.168.95.3"]
+        HISTORIAN["💾 Historian<br/>192.168.95.6"]
+    end
+
+    SCADA & HMI & HISTORIAN --> SWITCH["🔀 Industrial Switch"]
+
+    subgraph FIELD["⚙️ FIELD LAYER"]
+        PLC["🎛️ PLC<br/>192.168.95.2"]
+        RTU["📟 RTU<br/>192.168.95.5"]
+        SAFETY["🛡️ Safety PLC<br/>192.168.95.7"]
+    end
+
+    SWITCH --> PLC & RTU & SAFETY
+
+    subgraph DEVICES["🔧 FIELD DEVICES"]
+        IO["📊 I/O Rack<br/>Field Sensors"]
+        VFD["⚡ VFD Panel"]
+        SENSORS["🌡️ Safety Sensors"]
+    end
+
+    PLC --> IO
+    RTU --> VFD
+    SAFETY --> SENSORS
+
+    style CONTROL fill:#1e3a5f,stroke:#3b82f6,color:#fff
+    style FIELD fill:#1e3a5f,stroke:#f97316,color:#fff
+    style DEVICES fill:#1e3a5f,stroke:#10b981,color:#fff
+    style SWITCH fill:#6366f1,stroke:#818cf8,color:#fff
 ```
 
 #### d) **Modbus TCP Communication**
@@ -166,17 +169,33 @@ MODBUS_CONFIG = {
 
 #### a) **Data Flow Architecture**
 
-```
-┌───────────────┐     ┌───────────────┐     ┌───────────────┐
-│   Dataset     │────▶│   Backend     │────▶│   Frontend    │
-│   (CSV/DB)    │     │   (FastAPI)   │     │   (React)     │
-└───────────────┘     └───────┬───────┘     └───────┬───────┘
-                              │                     │
-                              ▼                     ▼
-                      ┌───────────────┐     ┌───────────────┐
-                      │  ML Models    │     │  WebSocket    │
-                      │  (Ensemble)   │     │  Real-time    │
-                      └───────────────┘     └───────────────┘
+```mermaid
+flowchart LR
+    subgraph DATA["📁 Data Layer"]
+        CSV[("📄 CSV Dataset")]
+        DB[("🗄️ PostgreSQL")]
+    end
+
+    subgraph BACKEND["⚙️ Backend (FastAPI)"]
+        API["🔌 REST API"]
+        ML["🤖 ML Models<br/>(Ensemble)"]
+    end
+
+    subgraph FRONTEND["🖥️ Frontend (React)"]
+        DASH["📊 Dashboard"]
+        WS["📡 WebSocket<br/>Real-time"]
+    end
+
+    CSV --> API
+    DB --> API
+    API --> ML
+    API --> DASH
+    ML --> WS
+    WS --> DASH
+
+    style DATA fill:#0f172a,stroke:#3b82f6,color:#fff
+    style BACKEND fill:#0f172a,stroke:#8b5cf6,color:#fff
+    style FRONTEND fill:#0f172a,stroke:#10b981,color:#fff
 ```
 
 #### b) **Step-by-Step Interaction**
@@ -616,20 +635,27 @@ def create_balanced_subset(
 
 #### c) **Real-Time Simulation Flow**
 
-```
-1. Dataset Loading → CSV/Database
-        ↓
-2. Random Packet Sampling
-        ↓
-3. Feature Preprocessing (Scaling)
-        ↓
-4. ML Model Inference
-        ↓
-5. Classification Result
-        ↓
-6. WebSocket Broadcast
-        ↓
-7. Dashboard Update
+```mermaid
+flowchart TD
+    A["1️⃣ Dataset Loading"] --> B["2️⃣ Random Packet Sampling"]
+    B --> C["3️⃣ Feature Preprocessing"]
+    C --> D["4️⃣ ML Model Inference"]
+    D --> E["5️⃣ Classification Result"]
+    E --> F["6️⃣ WebSocket Broadcast"]
+    F --> G["7️⃣ Dashboard Update"]
+
+    A -.-> CSV[("📄 CSV/Database")]
+    C -.-> SCALER["📐 StandardScaler"]
+    D -.-> MODEL["🧠 ensemble_model.pkl"]
+    E -.-> LABELS["🏷️ normal/dos/probe/r2l/u2r"]
+
+    style A fill:#3b82f6,stroke:#60a5fa,color:#fff
+    style B fill:#8b5cf6,stroke:#a78bfa,color:#fff
+    style C fill:#ec4899,stroke:#f472b6,color:#fff
+    style D fill:#f97316,stroke:#fb923c,color:#fff
+    style E fill:#eab308,stroke:#facc15,color:#000
+    style F fill:#10b981,stroke:#34d399,color:#fff
+    style G fill:#06b6d4,stroke:#22d3ee,color:#fff
 ```
 
 ### B. Industry Adaptation Guide
@@ -766,30 +792,34 @@ TenEast is a **synthetic chemical processing plant simulation** parsed from a Sc
 | **TenEast Simulation** | Provides industrial visualization (valves, tanks, sensors, PLCs) |
 | **ML Training Data** | Actual ICS network traffic datasets (attack detection) |
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    OT-SENTINEL ARCHITECTURE                     │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌─────────────────────┐      ┌─────────────────────────────┐  │
-│  │   TenEast Process   │      │    ML Attack Detection      │  │
-│  │    (SIMULATION)     │      │        (REAL DATA)          │  │
-│  ├─────────────────────┤      ├─────────────────────────────┤  │
-│  │ • Valves            │      │ • balanced_subset.csv       │  │
-│  │ • Flow rates        │      │ • ICS network traffic       │  │
-│  │ • Pressure sensors  │      │ • Attack labels (dos, mitm) │  │
-│  │ • Tank levels       │      │ • Trained ensemble model    │  │
-│  │ • PLCs & HMIs       │      │                             │  │
-│  └──────────┬──────────┘      └──────────────┬──────────────┘  │
-│             │                                │                  │
-│             └────────────┬───────────────────┘                  │
-│                          │                                      │
-│                          ▼                                      │
-│              ┌───────────────────────┐                          │
-│              │   UNIFIED DASHBOARD   │                          │
-│              │  Real-time Monitoring │                          │
-│              └───────────────────────┘                          │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph OT_SENTINEL["🛡️ OT-SENTINEL ARCHITECTURE"]
+        subgraph TENEAST["🏭 TenEast Process<br/>(SIMULATION)"]
+            V["🔧 Valves"]
+            F["💧 Flow rates"]
+            P["🌡️ Pressure sensors"]
+            T["📊 Tank levels"]
+            PLC["🎛️ PLCs & HMIs"]
+        end
+
+        subgraph ML["🤖 ML Attack Detection<br/>(REAL DATA)"]
+            CSV["📄 balanced_subset.csv"]
+            TRAFFIC["📡 ICS network traffic"]
+            LABELS["🏷️ Attack labels"]
+            MODEL["🧠 Trained ensemble model"]
+        end
+
+        TENEAST --> DASHBOARD
+        ML --> DASHBOARD
+
+        DASHBOARD["📺 UNIFIED DASHBOARD<br/>Real-time Monitoring"]
+    end
+
+    style OT_SENTINEL fill:#0f172a,stroke:#3b82f6,color:#fff
+    style TENEAST fill:#1e3a5f,stroke:#f97316,color:#fff
+    style ML fill:#1e3a5f,stroke:#8b5cf6,color:#fff
+    style DASHBOARD fill:#10b981,stroke:#34d399,color:#fff
 ```
 
 ### B. How the Simulation Works
@@ -923,52 +953,42 @@ def generate_alerts(self):
 
 ### D. How They Work Together
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                        SIMULATION FLOW                                │
-├──────────────────────────────────────────────────────────────────────┤
-│                                                                       │
-│   1. VISUALIZATION LAYER (TenEast)                                   │
-│   ┌─────────────────────────────────────────────────────────────┐    │
-│   │  IndustrialDataGenerator.get_current_data()                 │    │
-│   │           │                                                  │    │
-│   │           ▼                                                  │    │
-│   │  Generate valve positions, flow rates, pressures            │    │
-│   │           │                                                  │    │
-│   │           ▼                                                  │    │
-│   │  Check thresholds → Generate process alarms                 │    │
-│   │           │                                                  │    │
-│   │           ▼                                                  │    │
-│   │  Display on Dashboard (Industrial Process View)             │    │
-│   └─────────────────────────────────────────────────────────────┘    │
-│                                                                       │
-│   2. SECURITY LAYER (ML Detection)                                   │
-│   ┌─────────────────────────────────────────────────────────────┐    │
-│   │  Load balanced_subset.csv (network traffic data)            │    │
-│   │           │                                                  │    │
-│   │           ▼                                                  │    │
-│   │  RealTimeSimulationService.get_next_packet()                │    │
-│   │           │                                                  │    │
-│   │           ▼                                                  │    │
-│   │  Preprocess features → ML Model inference                   │    │
-│   │           │                                                  │    │
-│   │           ▼                                                  │    │
-│   │  Classify: normal/dos/probe/r2l/u2r/modbus_attack          │    │
-│   │           │                                                  │    │
-│   │           ▼                                                  │    │
-│   │  Broadcast via WebSocket → Security Dashboard               │    │
-│   └─────────────────────────────────────────────────────────────┘    │
-│                                                                       │
-│   3. UNIFIED DASHBOARD                                               │
-│   ┌─────────────────────────────────────────────────────────────┐    │
-│   │  • Process Overview (from TenEast)                          │    │
-│   │  • Network Topology (device configuration)                  │    │
-│   │  • Security Alerts (from ML detection)                      │    │
-│   │  • Attack Timeline (from ML classification)                 │    │
-│   │  • Real-time Traffic Analysis (from dataset simulation)    │    │
-│   └─────────────────────────────────────────────────────────────┘    │
-│                                                                       │
-└──────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph FLOW["🔄 SIMULATION FLOW"]
+        subgraph VIZ["1️⃣ VISUALIZATION LAYER (TenEast)"]
+            V1["🔧 IndustrialDataGenerator.get_current_data()"]
+            V2["📊 Generate valve positions, flow rates, pressures"]
+            V3["⚠️ Check thresholds → Generate process alarms"]
+            V4["🖥️ Display on Dashboard"]
+            V1 --> V2 --> V3 --> V4
+        end
+
+        subgraph SEC["2️⃣ SECURITY LAYER (ML Detection)"]
+            S1["📄 Load balanced_subset.csv"]
+            S2["📦 RealTimeSimulationService.get_next_packet()"]
+            S3["🔬 Preprocess features → ML Model inference"]
+            S4["🏷️ Classify: normal/dos/probe/r2l/u2r"]
+            S5["📡 Broadcast via WebSocket"]
+            S1 --> S2 --> S3 --> S4 --> S5
+        end
+
+        subgraph DASH["3️⃣ UNIFIED DASHBOARD"]
+            D1["📈 Process Overview"]
+            D2["🗺️ Network Topology"]
+            D3["🚨 Security Alerts"]
+            D4["📅 Attack Timeline"]
+            D5["📊 Real-time Traffic"]
+        end
+
+        V4 --> DASH
+        S5 --> DASH
+    end
+
+    style FLOW fill:#0f172a,stroke:#3b82f6,color:#fff
+    style VIZ fill:#1e3a5f,stroke:#f97316,color:#fff
+    style SEC fill:#1e3a5f,stroke:#8b5cf6,color:#fff
+    style DASH fill:#1e3a5f,stroke:#10b981,color:#fff
 ```
 
 ### E. ScadaBR Configuration Origin

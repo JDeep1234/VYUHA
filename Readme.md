@@ -6,15 +6,6 @@ A comprehensive C++ framework for testing and evaluating Endpoint Detection and 
 
 ---
 
-## 👥 Team
-
-| Member | Role | Modules |
-|--------|------|---------|
-| **Jdeep** | Lead Developer | CLI Tool, Agent Core, Integration & Snapshot |
-| **Bipin** | Exploit Developer | Exploit Scripts Module (CPL, DLL, EXE, HTA, Syscalls) |
-| **Karthik** | ML Engineer | ML Framework (Detection, Scoring, Correlation) |
-
----
 
 ## 🎯 Overview
 
@@ -309,27 +300,5 @@ public:
 
 ---
 
-## ⚠️ Disclaimer
 
-This tool is intended for **authorized security testing only**. Always obtain proper authorization before testing. Misuse of this tool may violate laws and regulations.
-
----
-
-## 📄 License
-
-MIT License - See [LICENSE](LICENSE) for details.
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/your-feature`)
-3. Commit changes (`git commit -m 'Add feature'`)
-4. Push to branch (`git push origin feature/your-feature`)
-5. Open Pull Request
-
----
-
-**Made with ❤️ by Jdeep, Bipin & Karthik**
 

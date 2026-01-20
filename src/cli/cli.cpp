@@ -18,6 +18,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <tlhelp32.h>
 #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
 #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
 #endif
@@ -26,6 +27,252 @@
 #include <unistd.h>
 #include <termios.h>
 #define SLEEP_MS(x) usleep((x) * 1000)
+#endif
+
+// EDR Detection Structures
+struct EDRProduct {
+    std::string name;
+    std::vector<std::string> processNames;
+    std::vector<std::string> serviceNames;
+};
+
+// Known EDR/AV products and their indicators
+static const std::vector<EDRProduct> knownEDRs = {
+    {"CrowdStrike Falcon", {"csfalconservice.exe", "csfalconcontainer.exe", "csagent.exe"}, {"CSFalconService"}},
+    {"Carbon Black", {"cb.exe", "cbcomms.exe", "cbstream.exe"}, {"CbDefense", "CarbonBlack"}},
+    {"SentinelOne", {"sentinelagent.exe", "sentinelctl.exe", "sentinelone.exe"}, {"SentinelAgent"}},
+    {"Symantec", {"ccsvchst.exe", "rtvscan.exe", "smc.exe"}, {"Symantec Endpoint Protection"}},
+    {"McAfee", {"mcshield.exe", "mfefire.exe", "mfemms.exe"}, {"McAfee Endpoint Security"}},
+    {"Kaspersky", {"avp.exe", "kavfs.exe", "klnagent.exe"}, {"AVP", "Kaspersky"}},
+    {"ESET", {"ekrn.exe", "egui.exe", "eamonm.exe"}, {"ekrn", "ESET"}},
+    {"Sophos", {"savservice.exe", "sophosui.exe", "hmpalert.exe"}, {"Sophos Endpoint"}},
+    {"Trend Micro", {"ntrtscan.exe", "tmntsrv.exe", "pccntmon.exe"}, {"TrendMicro"}},
+    {"Cylance", {"cylancesvc.exe", "cylanceui.exe"}, {"CylanceSvc"}},
+    {"Palo Alto Cortex", {"traps.exe", "cyserver.exe", "cytray.exe"}, {"Traps", "CortexXDR"}},
+    {"Microsoft Defender ATP", {"mssense.exe", "sensecncproxy.exe"}, {"Sense"}},
+    {"Malwarebytes", {"mbam.exe", "mbamservice.exe"}, {"MBAMService"}},
+    {"Bitdefender", {"bdagent.exe", "vsserv.exe", "bdredline.exe"}, {"VSSERV", "bdredline"}},
+    {"Avast", {"avastsvc.exe", "avastui.exe"}, {"avast! Antivirus"}},
+    {"AVG", {"avgsvc.exe", "avgui.exe"}, {"AVGSvc"}},
+    {"F-Secure", {"fssm32.exe", "fsgk32.exe"}, {"F-Secure"}},
+    {"Webroot", {"wrsa.exe"}, {"WRSVC"}},
+    {"Elastic EDR", {"elastic-agent.exe", "elastic-endpoint.exe"}, {"Elastic Agent"}},
+    {"Tanium", {"taniumclient.exe"}, {"Tanium Client"}},
+};
+
+// ============================================================================
+// SYSTEM DETECTION FUNCTIONS
+// ============================================================================
+
+#ifdef _WIN32
+// Get list of running processes
+std::vector<std::string> getRunningProcesses() {
+    std::vector<std::string> processes;
+    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hSnapshot == INVALID_HANDLE_VALUE) return processes;
+    
+    PROCESSENTRY32 pe32;
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+    
+    if (Process32First(hSnapshot, &pe32)) {
+        do {
+            std::string procName(pe32.szExeFile);
+            std::transform(procName.begin(), procName.end(), procName.begin(), ::tolower);
+            processes.push_back(procName);
+        } while (Process32Next(hSnapshot, &pe32));
+    }
+    CloseHandle(hSnapshot);
+    return processes;
+}
+
+// Check if a process is running
+bool isProcessRunning(const std::string& processName, const std::vector<std::string>& runningProcs) {
+    std::string lowerName = processName;
+    std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+    
+    for (const auto& proc : runningProcs) {
+        if (proc == lowerName) return true;
+    }
+    return false;
+}
+
+// Detect Windows Defender status
+std::pair<std::string, std::string> detectWindowsDefender() {
+    // Check if Windows Defender service is running
+    SC_HANDLE scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
+    if (!scm) return {"Unknown", "Cannot query services"};
+    
+    SC_HANDLE service = OpenService(scm, "WinDefend", SERVICE_QUERY_STATUS);
+    if (!service) {
+        CloseServiceHandle(scm);
+        return {"Not Installed", "-"};
+    }
+    
+    SERVICE_STATUS_PROCESS ssp;
+    DWORD bytesNeeded;
+    if (QueryServiceStatusEx(service, SC_STATUS_PROCESS_INFO, (LPBYTE)&ssp, sizeof(ssp), &bytesNeeded)) {
+        CloseServiceHandle(service);
+        CloseServiceHandle(scm);
+        
+        if (ssp.dwCurrentState == SERVICE_RUNNING) {
+            // Check real-time protection via registry
+            HKEY hKey;
+            DWORD rtpDisabled = 0;
+            DWORD size = sizeof(DWORD);
+            
+            if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, 
+                "SOFTWARE\\Microsoft\\Windows Defender\\Real-Time Protection", 
+                0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+                RegQueryValueExA(hKey, "DisableRealtimeMonitoring", NULL, NULL, (LPBYTE)&rtpDisabled, &size);
+                RegCloseKey(hKey);
+            }
+            
+            if (rtpDisabled == 0) {
+                return {"Active", "Real-time protection ON"};
+            } else {
+                return {"Active", "Real-time protection OFF"};
+            }
+        } else {
+            return {"Stopped", "Service not running"};
+        }
+    }
+    
+    CloseServiceHandle(service);
+    CloseServiceHandle(scm);
+    return {"Unknown", "Query failed"};
+}
+
+// Detect EDR products
+std::vector<std::tuple<std::string, std::string, std::string>> detectEDRProducts(const std::vector<std::string>& runningProcs) {
+    std::vector<std::tuple<std::string, std::string, std::string>> detected;
+    
+    for (const auto& edr : knownEDRs) {
+        bool found = false;
+        for (const auto& procName : edr.processNames) {
+            if (isProcessRunning(procName, runningProcs)) {
+                found = true;
+                break;
+            }
+        }
+        
+        if (found) {
+            detected.push_back(std::make_tuple(edr.name, "Active", "Process detected"));
+        }
+    }
+    
+    return detected;
+}
+
+// Detect VM/Hypervisor
+std::pair<std::string, std::string> detectVMProvider() {
+    // Check for VM indicators via registry
+    HKEY hKey;
+    char value[256] = {0};
+    DWORD size = sizeof(value);
+    
+    // Check BIOS info
+    if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, 
+        "HARDWARE\\DESCRIPTION\\System\\BIOS", 
+        0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+        
+        if (RegQueryValueExA(hKey, "SystemManufacturer", NULL, NULL, (LPBYTE)value, &size) == ERROR_SUCCESS) {
+            std::string manufacturer(value);
+            RegCloseKey(hKey);
+            
+            if (manufacturer.find("VMware") != std::string::npos) {
+                return {"VMware", "Detected"};
+            } else if (manufacturer.find("innotek") != std::string::npos || 
+                       manufacturer.find("VirtualBox") != std::string::npos) {
+                return {"VirtualBox", "Detected"};
+            } else if (manufacturer.find("Microsoft") != std::string::npos) {
+                // Could be Hyper-V, check further
+                size = sizeof(value);
+                memset(value, 0, sizeof(value));
+                if (RegQueryValueExA(hKey, "SystemProductName", NULL, NULL, (LPBYTE)value, &size) == ERROR_SUCCESS) {
+                    std::string product(value);
+                    if (product.find("Virtual") != std::string::npos) {
+                        return {"Hyper-V", "Detected"};
+                    }
+                }
+            } else if (manufacturer.find("QEMU") != std::string::npos) {
+                return {"QEMU/KVM", "Detected"};
+            } else if (manufacturer.find("Xen") != std::string::npos) {
+                return {"Xen", "Detected"};
+            } else if (manufacturer.find("Amazon") != std::string::npos) {
+                return {"AWS EC2", "Detected"};
+            } else if (manufacturer.find("Google") != std::string::npos) {
+                return {"Google Cloud", "Detected"};
+            }
+        }
+        RegCloseKey(hKey);
+    }
+    
+    // Check for common VM processes
+    std::vector<std::string> procs = getRunningProcesses();
+    for (const auto& proc : procs) {
+        if (proc == "vmtoolsd.exe" || proc == "vmwaretray.exe") {
+            return {"VMware", "Tools detected"};
+        } else if (proc == "vboxservice.exe" || proc == "vboxtray.exe") {
+            return {"VirtualBox", "Tools detected"};
+        }
+    }
+    
+    return {"Physical/Unknown", "No VM detected"};
+}
+
+// Get system info
+std::string getWindowsVersion() {
+    HKEY hKey;
+    char productName[256] = {0};
+    DWORD size = sizeof(productName);
+    
+    if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, 
+        "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 
+        0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+        RegQueryValueExA(hKey, "ProductName", NULL, NULL, (LPBYTE)productName, &size);
+        RegCloseKey(hKey);
+    }
+    
+    return std::string(productName);
+}
+
+std::string getComputerName() {
+    char name[MAX_COMPUTERNAME_LENGTH + 1] = {0};
+    DWORD size = sizeof(name);
+    GetComputerNameA(name, &size);
+    return std::string(name);
+}
+
+std::string getUserName() {
+    char name[256] = {0};
+    DWORD size = sizeof(name);
+    GetUserNameA(name, &size);
+    return std::string(name);
+}
+
+bool isAdmin() {
+    BOOL isAdmin = FALSE;
+    PSID adminGroup = NULL;
+    SID_IDENTIFIER_AUTHORITY ntAuthority = SECURITY_NT_AUTHORITY;
+    
+    if (AllocateAndInitializeSid(&ntAuthority, 2, SECURITY_BUILTIN_DOMAIN_RID,
+        DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &adminGroup)) {
+        CheckTokenMembership(NULL, adminGroup, &isAdmin);
+        FreeSid(adminGroup);
+    }
+    return isAdmin == TRUE;
+}
+
+#else
+// Linux/macOS stubs
+std::vector<std::string> getRunningProcesses() { return {}; }
+std::pair<std::string, std::string> detectWindowsDefender() { return {"N/A", "Not Windows"}; }
+std::vector<std::tuple<std::string, std::string, std::string>> detectEDRProducts(const std::vector<std::string>&) { return {}; }
+std::pair<std::string, std::string> detectVMProvider() { return {"Unknown", "-"}; }
+std::string getWindowsVersion() { return "N/A"; }
+std::string getComputerName() { return "N/A"; }
+std::string getUserName() { return "N/A"; }
+bool isAdmin() { return false; }
 #endif
 
 namespace edr {
@@ -724,21 +971,56 @@ void CLI::cmdList(const CommandContext& ctx) {
 
 void CLI::cmdStatus(const CommandContext& ctx) {
     std::cout << std::endl;
-    UI::info("System Status");
+    UI::info("Scanning system for security products...");
     std::cout << std::endl;
     
-    // EDR Status
-    std::vector<std::string> headers = {"Component", "Status", "Details"};
-    std::vector<std::vector<std::string>> data = {
-        {"Windows Defender", "Active", "Real-time protection ON"},
-        {"CrowdStrike", "Not Detected", "-"},
-        {"Carbon Black", "Not Detected", "-"},
-        {"VM Provider", "Hyper-V", "Detected"},
+    // Get running processes once
+    auto runningProcs = getRunningProcesses();
+    
+    // System Info Section
+    UI::println("  SYSTEM INFORMATION", colors::BOLD);
+    UI::divider(colors::DIM);
+    
+    std::vector<std::string> sysHeaders = {"Property", "Value"};
+    std::vector<std::vector<std::string>> sysData = {
+        {"Computer Name", getComputerName()},
+        {"Username", getUserName()},
+        {"OS", getWindowsVersion()},
+        {"Privileges", isAdmin() ? "Administrator" : "Standard User"},
     };
+    UI::table(sysData, sysHeaders);
+    std::cout << std::endl;
+    
+    // EDR/AV Detection Section
+    UI::println("  SECURITY PRODUCTS", colors::BOLD);
+    UI::divider(colors::DIM);
+    
+    std::vector<std::string> headers = {"Component", "Status", "Details"};
+    std::vector<std::vector<std::string>> data;
+    
+    // Detect Windows Defender
+    auto defenderStatus = detectWindowsDefender();
+    data.push_back({"Windows Defender", defenderStatus.first, defenderStatus.second});
+    
+    // Detect EDR products
+    auto detectedEDRs = detectEDRProducts(runningProcs);
+    if (detectedEDRs.empty()) {
+        data.push_back({"Third-party EDR", "Not Detected", "No known EDR processes found"});
+    } else {
+        for (const auto& edr : detectedEDRs) {
+            data.push_back({std::get<0>(edr), std::get<1>(edr), std::get<2>(edr)});
+        }
+    }
+    
+    // Detect VM
+    auto vmStatus = detectVMProvider();
+    data.push_back({"VM/Hypervisor", vmStatus.first, vmStatus.second});
     
     UI::table(data, headers);
     std::cout << std::endl;
     
+    // Process count
+    UI::info("Scanned " + std::to_string(runningProcs.size()) + " running processes");
     UI::success("Session ID: " + currentSession_);
     std::cout << std::endl;
 }

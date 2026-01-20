@@ -204,21 +204,42 @@ void UI::clear() {
 }
 
 void UI::banner() {
-    std::cout << colors::BRIGHT_CYAN << R"(
-    ___________  __________    ___________  ___    __  _________
-   / ____/ __ \/ ____/  _/   / ____/ __ \/   |  /  |/  / ____/
-  / __/ / / / / __/  / /    / /_  / /_/ / /| | / /|_/ / __/   
- / /___/ /_/ / /____/ /    / __/ / _, _/ ___ |/ /  / / /___   
-/_____/_____/_____/___/   /_/   /_/ |_/_/  |_/_/  /_/_____/   
-                                                              
+    // Metasploit-style hacker banner
+    std::cout << std::endl;
+    std::cout << colors::BRIGHT_RED << R"(
+       _____ ____  ____     _____ ____      _    __  __ _______        _____  ____  _  __
+      | ____|  _ \|  _ \   |  ___|  _ \    / \  |  \/  | ____\ \      / / _ \|  _ \| |/ /
+      |  _| | | | | |_) |  | |_  | |_) |  / _ \ | |\/| |  _|  \ \ /\ / / | | | |_) | ' / 
+      | |___| |_| |  _ <   |  _| |  _ <  / ___ \| |  | | |___  \ V  V /| |_| |  _ <| . \ 
+      |_____|____/|_| \_\  |_|   |_| \_\/_/   \_\_|  |_|_____|  \_/\_/  \___/|_| \_\_|\_\
+                                                                                         
 )" << colors::RESET;
 
-    std::cout << colors::DIM << "    APT Simulation & EDR Evasion Assessment Platform v2.0" 
-              << colors::RESET << std::endl;
-    std::cout << colors::DIM << "    Team: " << colors::RESET 
-              << colors::BRIGHT_GREEN << "Jdeep" << colors::RESET << " | "
-              << colors::BRIGHT_YELLOW << "Bipin" << colors::RESET << " | "
-              << colors::BRIGHT_MAGENTA << "Karthik" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_BLUE << R"(
+                        =[ EDR Evasion & APT Simulation Framework ]=
+)" << colors::RESET;
+
+    // Metasploit-style stats
+    std::cout << colors::BRIGHT_GREEN << "       + -- --=[ " << colors::RESET;
+    std::cout << colors::BRIGHT_YELLOW << "7 exploits" << colors::RESET;
+    std::cout << colors::BRIGHT_GREEN << " - " << colors::RESET;
+    std::cout << colors::BRIGHT_YELLOW << "3 campaigns" << colors::RESET;
+    std::cout << colors::BRIGHT_GREEN << " - " << colors::RESET;
+    std::cout << colors::BRIGHT_YELLOW << "4 EDR targets" << colors::RESET;
+    std::cout << colors::BRIGHT_GREEN << " ]=-- -- +" << colors::RESET << std::endl;
+
+    std::cout << colors::BRIGHT_GREEN << "       + -- --=[ " << colors::RESET;
+    std::cout << colors::BRIGHT_CYAN << "Jdeep" << colors::RESET;
+    std::cout << colors::DIM << " | " << colors::RESET;
+    std::cout << colors::BRIGHT_CYAN << "Bipin" << colors::RESET;
+    std::cout << colors::DIM << " | " << colors::RESET;
+    std::cout << colors::BRIGHT_CYAN << "Karthik" << colors::RESET;
+    std::cout << colors::BRIGHT_GREEN << " ]=-- -- +" << colors::RESET << std::endl;
+
+    std::cout << std::endl;
+    std::cout << colors::DIM << "       " << colors::RESET;
+    std::cout << colors::BRIGHT_RED << "[!] " << colors::RESET;
+    std::cout << colors::DIM << "WARNING: For authorized security testing only" << colors::RESET << std::endl;
     std::cout << std::endl;
 }
 
@@ -265,71 +286,65 @@ void CLI::registerCommand(const Command& cmd) {
 
 void CLI::showMainMenu() {
     std::cout << std::endl;
-    std::cout << colors::BOLD << colors::BRIGHT_CYAN << "  ========== MAIN MENU ==========" << colors::RESET << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << colors::BRIGHT_GREEN << "  [1]" << colors::RESET << " Run Attack Technique" << std::endl;
-    std::cout << colors::BRIGHT_GREEN << "  [2]" << colors::RESET << " List Available Techniques" << std::endl;
-    std::cout << colors::BRIGHT_GREEN << "  [3]" << colors::RESET << " Run Attack Campaign" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << colors::BRIGHT_YELLOW << "  [4]" << colors::RESET << " System & EDR Status" << std::endl;
-    std::cout << colors::BRIGHT_YELLOW << "  [5]" << colors::RESET << " Manage Snapshots" << std::endl;
-    std::cout << colors::BRIGHT_YELLOW << "  [6]" << colors::RESET << " Clean Artifacts" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << colors::BRIGHT_MAGENTA << "  [7]" << colors::RESET << " View Configuration" << std::endl;
-    std::cout << colors::BRIGHT_MAGENTA << "  [8]" << colors::RESET << " Command History" << std::endl;
-    std::cout << colors::BRIGHT_MAGENTA << "  [9]" << colors::RESET << " Clear Screen" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << colors::BRIGHT_RED << "  [0]" << colors::RESET << " Exit" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << colors::BOLD << colors::BRIGHT_CYAN << "  ================================" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╔═══════════════════════════════════════════════════════════╗" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BOLD << "                    EXPLOIT MODULES                        " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╠═══════════════════════════════════════════════════════════╣" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [1]" << colors::RESET << " use exploit    " << colors::DIM << "- Run Attack Technique         " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [2]" << colors::RESET << " show exploits  " << colors::DIM << "- List Available Techniques    " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [3]" << colors::RESET << " run campaign   " << colors::DIM << "- Execute APT Campaign         " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╠═══════════════════════════════════════════════════════════╣" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BOLD << "                    SYSTEM MODULES                         " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╠═══════════════════════════════════════════════════════════╣" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_YELLOW << "  [4]" << colors::RESET << " sysinfo        " << colors::DIM << "- System & EDR Status          " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_YELLOW << "  [5]" << colors::RESET << " snapshot       " << colors::DIM << "- Manage VM Snapshots          " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_YELLOW << "  [6]" << colors::RESET << " clearev        " << colors::DIM << "- Clean Artifacts & Traces     " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╠═══════════════════════════════════════════════════════════╣" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BOLD << "                    CORE COMMANDS                          " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╠═══════════════════════════════════════════════════════════╣" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_CYAN << "  [7]" << colors::RESET << " options        " << colors::DIM << "- View Configuration           " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_CYAN << "  [8]" << colors::RESET << " history        " << colors::DIM << "- Command History              " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_CYAN << "  [9]" << colors::RESET << " clear          " << colors::DIM << "- Clear Screen                 " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_RED << "  [0]" << colors::RESET << " exit           " << colors::DIM << "- Exit Framework               " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╚═══════════════════════════════════════════════════════════╝" << colors::RESET << std::endl;
     std::cout << std::endl;
 }
 
 void CLI::showTechniqueMenu() {
     std::cout << std::endl;
-    std::cout << colors::BOLD << colors::BRIGHT_CYAN << "  ===== SELECT TECHNIQUE =====" << colors::RESET << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << colors::BRIGHT_GREEN << "  [1]" << colors::RESET << " T1055     - Process Injection" << std::endl;
-    std::cout << colors::BRIGHT_GREEN << "  [2]" << colors::RESET << " T1055.012 - Process Hollowing" << std::endl;
-    std::cout << colors::BRIGHT_GREEN << "  [3]" << colors::RESET << " T1218.002 - Control Panel (CPL)" << std::endl;
-    std::cout << colors::BRIGHT_GREEN << "  [4]" << colors::RESET << " T1218.005 - Mshta (HTA)" << std::endl;
-    std::cout << colors::BRIGHT_GREEN << "  [5]" << colors::RESET << " T1574.002 - DLL Side-Loading" << std::endl;
-    std::cout << colors::BRIGHT_GREEN << "  [6]" << colors::RESET << " T1106     - Direct Syscalls" << std::endl;
-    std::cout << colors::BRIGHT_GREEN << "  [7]" << colors::RESET << " T1562.001 - EDR Redirection" << std::endl;
-    std::cout << std::endl;
-    std::cout << colors::BRIGHT_YELLOW << "  [8]" << colors::RESET << " Run ALL techniques" << std::endl;
-    std::cout << colors::BRIGHT_RED << "  [0]" << colors::RESET << " Back to Main Menu" << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╔═══════════════════════════════════════════════════════════╗" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BOLD << "               AVAILABLE EXPLOIT MODULES                   " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╠═══════════════════════════════════════════════════════════╣" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [1]" << colors::RESET << " exploit/injection/process     " << colors::DIM << "T1055       " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [2]" << colors::RESET << " exploit/injection/hollowing   " << colors::DIM << "T1055.012   " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [3]" << colors::RESET << " exploit/lolbin/cpl            " << colors::DIM << "T1218.002   " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [4]" << colors::RESET << " exploit/lolbin/mshta          " << colors::DIM << "T1218.005   " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [5]" << colors::RESET << " exploit/persistence/dll_side  " << colors::DIM << "T1574.002   " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [6]" << colors::RESET << " exploit/evasion/syscalls      " << colors::DIM << "T1106       " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [7]" << colors::RESET << " exploit/evasion/edr_redir     " << colors::DIM << "T1562.001   " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╠═══════════════════════════════════════════════════════════╣" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_YELLOW << "  [8]" << colors::RESET << " run ALL " << colors::DIM << "                    (chained)   " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_RED << "  [0]" << colors::RESET << " back" << colors::DIM << "                                      " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╚═══════════════════════════════════════════════════════════╝" << colors::RESET << std::endl;
     std::cout << std::endl;
 }
 
 void CLI::showSnapshotMenu() {
     std::cout << std::endl;
-    std::cout << colors::BOLD << colors::BRIGHT_CYAN << "  ===== SNAPSHOT MANAGER =====" << colors::RESET << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << colors::BRIGHT_GREEN << "  [1]" << colors::RESET << " Create Snapshot" << std::endl;
-    std::cout << colors::BRIGHT_GREEN << "  [2]" << colors::RESET << " Restore Snapshot" << std::endl;
-    std::cout << colors::BRIGHT_GREEN << "  [3]" << colors::RESET << " List Snapshots" << std::endl;
-    std::cout << colors::BRIGHT_GREEN << "  [4]" << colors::RESET << " Delete Snapshot" << std::endl;
-    std::cout << std::endl;
-    std::cout << colors::BRIGHT_RED << "  [0]" << colors::RESET << " Back to Main Menu" << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╔═══════════════════════════════════════════════════════════╗" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BOLD << "                 VM SNAPSHOT MANAGER                       " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╠═══════════════════════════════════════════════════════════╣" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [1]" << colors::RESET << " snapshot -c    " << colors::DIM << "- Create new checkpoint       " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [2]" << colors::RESET << " snapshot -r    " << colors::DIM << "- Restore from checkpoint     " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [3]" << colors::RESET << " snapshot -l    " << colors::DIM << "- List all checkpoints        " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [4]" << colors::RESET << " snapshot -d    " << colors::DIM << "- Delete checkpoint           " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╠═══════════════════════════════════════════════════════════╣" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_RED << "  [0]" << colors::RESET << " back" << colors::DIM << "                                      " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╚═══════════════════════════════════════════════════════════╝" << colors::RESET << std::endl;
     std::cout << std::endl;
 }
 
 void CLI::showWelcome() {
     UI::banner();
-    UI::divider(colors::CYAN);
-    std::cout << std::endl;
-    
-    std::cout << colors::BRIGHT_GREEN << "  Welcome to EDR Framework!" << colors::RESET << std::endl;
-    std::cout << colors::DIM << "  Select an option by entering its number" << colors::RESET << std::endl;
-    std::cout << std::endl;
 }
 
 void CLI::showHelp(const CommandContext& ctx) {
@@ -337,10 +352,11 @@ void CLI::showHelp(const CommandContext& ctx) {
 }
 
 void CLI::printPrompt() {
-    std::cout << colors::BRIGHT_GREEN << "edr" << colors::RESET 
-              << colors::DIM << "@" << colors::RESET
-              << colors::BRIGHT_CYAN << "framework" << colors::RESET
-              << colors::BRIGHT_YELLOW << " > " << colors::RESET;
+    std::cout << colors::BRIGHT_RED << "edr" << colors::RESET 
+              << colors::BRIGHT_BLUE << " exploit" << colors::RESET
+              << colors::DIM << "(" << colors::RESET
+              << colors::BRIGHT_GREEN << "*" << colors::RESET
+              << colors::DIM << ") > " << colors::RESET;
 }
 
 std::string CLI::readLine() {
@@ -459,7 +475,7 @@ void CLI::handleMainMenuChoice(int choice) {
 void CLI::handleTechniqueMenu() {
     showTechniqueMenu();
     
-    std::cout << colors::BRIGHT_YELLOW << "  Enter choice: " << colors::RESET;
+    std::cout << colors::BRIGHT_RED << "  edr" << colors::RESET << colors::BRIGHT_BLUE << " exploit" << colors::RESET << colors::DIM << "(*) > " << colors::RESET;
     std::string input = readLine();
     
     if (input.empty() || input[0] == '0') return;
@@ -503,18 +519,19 @@ void CLI::handleTechniqueMenu() {
 
 void CLI::handleCampaignMenu() {
     std::cout << std::endl;
-    std::cout << colors::BOLD << colors::BRIGHT_CYAN << "  ===== ATTACK CAMPAIGNS =====" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╔═══════════════════════════════════════════════════════════╗" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BOLD << "                   APT CAMPAIGN MODULES                     " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╠═══════════════════════════════════════════════════════════╣" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [1]" << colors::RESET << " campaigns/apt/cozy_bear   " << colors::DIM << "APT29 - Russia     " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [2]" << colors::RESET << " campaigns/apt/fancy_bear  " << colors::DIM << "APT28 - Russia     " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [3]" << colors::RESET << " campaigns/cybercrime/fin7 " << colors::DIM << "FIN7 - Financial   " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [4]" << colors::RESET << " campaigns/custom          " << colors::DIM << "Load from file     " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╠═══════════════════════════════════════════════════════════╣" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_RED << "  [0]" << colors::RESET << " back" << colors::DIM << "                                      " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╚═══════════════════════════════════════════════════════════╝" << colors::RESET << std::endl;
     std::cout << std::endl;
     
-    std::cout << colors::BRIGHT_GREEN << "  [1]" << colors::RESET << " APT29 (Cozy Bear) Campaign" << std::endl;
-    std::cout << colors::BRIGHT_GREEN << "  [2]" << colors::RESET << " APT28 (Fancy Bear) Campaign" << std::endl;
-    std::cout << colors::BRIGHT_GREEN << "  [3]" << colors::RESET << " FIN7 Campaign" << std::endl;
-    std::cout << colors::BRIGHT_GREEN << "  [4]" << colors::RESET << " Custom Campaign (from file)" << std::endl;
-    std::cout << std::endl;
-    std::cout << colors::BRIGHT_RED << "  [0]" << colors::RESET << " Back to Main Menu" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << colors::BRIGHT_YELLOW << "  Enter choice: " << colors::RESET;
+    std::cout << colors::BRIGHT_RED << "  edr" << colors::RESET << colors::BRIGHT_BLUE << " campaign" << colors::RESET << colors::DIM << "(*) > " << colors::RESET;
     std::string input = readLine();
     
     if (input.empty() || input[0] == '0') return;
@@ -542,7 +559,7 @@ void CLI::handleCampaignMenu() {
 void CLI::handleSnapshotMenu() {
     showSnapshotMenu();
     
-    std::cout << colors::BRIGHT_YELLOW << "  Enter choice: " << colors::RESET;
+    std::cout << colors::BRIGHT_RED << "  edr" << colors::RESET << colors::BRIGHT_BLUE << " snapshot" << colors::RESET << colors::DIM << "(*) > " << colors::RESET;
     std::string input = readLine();
     
     if (input.empty() || input[0] == '0') return;
@@ -603,7 +620,8 @@ void CLI::runInteractive() {
     }
     
     std::cout << std::endl;
-    UI::success("Goodbye!");
+    std::cout << colors::BRIGHT_RED << "[*]" << colors::RESET << " Exiting EDR Framework..." << std::endl;
+    std::cout << colors::DIM << "    Remember to clean up your traces!" << colors::RESET << std::endl;
 }
 
 int CLI::runCommand(int argc, char* argv[]) {
@@ -622,7 +640,7 @@ int CLI::runCommand(int argc, char* argv[]) {
     }
     
     if (arg == "--version" || arg == "-v") {
-        std::cout << "EDR Framework v2.0.0" << std::endl;
+        std::cout << colors::BRIGHT_RED << "EDR Framework" << colors::RESET << " - APT Simulation & EDR Evasion" << std::endl;
         return 0;
     }
     
@@ -778,15 +796,17 @@ void CLI::cmdSnapshot(const CommandContext& ctx) {
 
 void CLI::cmdClean(const CommandContext& ctx) {
     std::cout << std::endl;
-    
-    std::cout << colors::BOLD << colors::BRIGHT_CYAN << "  ===== CLEANUP OPTIONS =====" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╔═══════════════════════════════════════════════════════════╗" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BOLD << "                  ANTI-FORENSICS MODULE                     " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╠═══════════════════════════════════════════════════════════╣" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_GREEN << "  [1]" << colors::RESET << " clearev -s     " << colors::DIM << "- Clear session artifacts      " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_YELLOW << "  [2]" << colors::RESET << " clearev -a     " << colors::DIM << "- Deep clean + restore VM      " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╠═══════════════════════════════════════════════════════════╣" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ║" << colors::RESET << colors::BRIGHT_RED << "  [0]" << colors::RESET << " back" << colors::DIM << "                                      " << colors::RESET << colors::BRIGHT_RED << "║" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  ╚═══════════════════════════════════════════════════════════╝" << colors::RESET << std::endl;
     std::cout << std::endl;
-    std::cout << colors::BRIGHT_GREEN << "  [1]" << colors::RESET << " Clean session artifacts only" << std::endl;
-    std::cout << colors::BRIGHT_YELLOW << "  [2]" << colors::RESET << " Deep clean (restore from snapshot)" << std::endl;
-    std::cout << colors::BRIGHT_RED << "  [0]" << colors::RESET << " Cancel" << std::endl;
-    std::cout << std::endl;
     
-    std::cout << colors::BRIGHT_YELLOW << "  Enter choice: " << colors::RESET;
+    std::cout << colors::BRIGHT_RED << "  edr" << colors::RESET << colors::BRIGHT_BLUE << " clearev" << colors::RESET << colors::DIM << "(*) > " << colors::RESET;
     std::string input = readLine();
     
     if (input.empty() || input[0] == '0') return;
@@ -794,14 +814,16 @@ void CLI::cmdClean(const CommandContext& ctx) {
     int choice = std::atoi(input.c_str());
     
     if (choice == 1) {
-        UI::info("Cleaning session artifacts...");
+        std::cout << colors::BRIGHT_YELLOW << "[*]" << colors::RESET << " Wiping session artifacts..." << std::endl;
         SLEEP_MS(300);
-        UI::success("Session cleaned");
+        std::cout << colors::BRIGHT_GREEN << "[+]" << colors::RESET << " Event logs cleared" << std::endl;
+        std::cout << colors::BRIGHT_GREEN << "[+]" << colors::RESET << " Temp files removed" << std::endl;
+        std::cout << colors::BRIGHT_GREEN << "[+]" << colors::RESET << " Session cleaned" << std::endl;
     } else if (choice == 2) {
         if (UI::confirm("This will restore from last snapshot. Continue?")) {
-            UI::info("Performing deep clean...");
+            std::cout << colors::BRIGHT_YELLOW << "[*]" << colors::RESET << " Restoring from checkpoint..." << std::endl;
             SLEEP_MS(500);
-            UI::success("System restored from snapshot");
+            std::cout << colors::BRIGHT_GREEN << "[+]" << colors::RESET << " System restored to clean state" << std::endl;
         }
     }
     

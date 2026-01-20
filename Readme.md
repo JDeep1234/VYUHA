@@ -1,8 +1,5 @@
-# 🛡️ EDR Adaptive Framework v2.0
+# 🛡️ EDR Adaptive Framework 
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![MITRE ATT&CK](https://img.shields.io/badge/MITRE-ATT%26CK-red.svg)](https://attack.mitre.org/)
 
 > **Advanced APT Simulation & EDR Evasion Assessment Platform**
 
@@ -122,21 +119,6 @@ The framework covers techniques across the Cyber Kill Chain:
 
 ---
 
-## 🎯 Supported EDR/AV Systems
-
-The framework has been tested against:
-
-| Vendor | Product | Status |
-|--------|---------|--------|
-| CrowdStrike | Falcon | ✅ Tested |
-| Microsoft | Defender ATP | ✅ Tested |
-| VMware | Carbon Black | ✅ Tested |
-| Sophos | Intercept X | ✅ Tested |
-| ESET | Endpoint Security | ✅ Tested |
-| Kaspersky | Endpoint Security | ✅ Tested |
-
-
----
 
 ## 📚 References
 

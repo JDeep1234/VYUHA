@@ -224,16 +224,44 @@ std::pair<std::string, std::string> detectVMProvider() {
 std::string getWindowsVersion() {
     HKEY hKey;
     char productName[256] = {0};
-    DWORD size = sizeof(productName);
+    char buildNumber[32] = {0};
+    char displayVersion[32] = {0};
+    DWORD size;
     
     if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, 
         "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 
         0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+        
+        size = sizeof(productName);
         RegQueryValueExA(hKey, "ProductName", NULL, NULL, (LPBYTE)productName, &size);
+        
+        size = sizeof(buildNumber);
+        RegQueryValueExA(hKey, "CurrentBuildNumber", NULL, NULL, (LPBYTE)buildNumber, &size);
+        
+        size = sizeof(displayVersion);
+        RegQueryValueExA(hKey, "DisplayVersion", NULL, NULL, (LPBYTE)displayVersion, &size);
+        
         RegCloseKey(hKey);
     }
     
-    return std::string(productName);
+    std::string result(productName);
+    int build = std::atoi(buildNumber);
+    
+    // Windows 11 has build number >= 22000
+    if (build >= 22000) {
+        // Replace "Windows 10" with "Windows 11" if present
+        size_t pos = result.find("Windows 10");
+        if (pos != std::string::npos) {
+            result.replace(pos, 10, "Windows 11");
+        }
+    }
+    
+    // Append version if available
+    if (strlen(displayVersion) > 0) {
+        result += " (" + std::string(displayVersion) + ")";
+    }
+    
+    return result;
 }
 
 std::string getComputerName() {

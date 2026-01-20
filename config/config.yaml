@@ -57,23 +57,12 @@ snapshot:
 
 # Report generation
 reports:
-  format: html  # html, pdf, json, csv, stix
+  format: html  # html, json, csv, stix
   include_telemetry: true
   include_mitre_mapping: true
   include_recommendations: true
-  
-  # STIX export settings
-  stix:
-    version: "2.1"
-    include_attack_patterns: true
 
-# Security settings
-security:
-  encrypt_payloads: true
-  audit_logging: true
-  max_session_duration: 7200  # seconds
-
-# Technique categories
+# Technique categories - BIPIN add techniques here
 techniques:
   enabled_tactics:
     - initial_access
@@ -91,9 +80,15 @@ techniques:
     - T1055.012  # Process Hollowing
     - T1134      # Token Manipulation
 
+# ML Framework settings - KARTHIK configure here
+ml:
+  enabled: true
+  model_path: models/
+  attack_database: data/mitre_attack.json
+  detection_patterns: data/patterns.yaml
+
 # Logging configuration
 logging:
   file: logs/edr_framework.log
   max_size: 10485760  # 10MB
   backup_count: 5
-  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

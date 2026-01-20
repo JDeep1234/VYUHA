@@ -1,13 +1,20 @@
-# 🛡️ EDR Adaptive Framework 
-
+# 🛡️ EDR Adaptive Framework
 
 > **Advanced APT Simulation & EDR Evasion Assessment Platform**
 
-A comprehensive framework for testing and evaluating Endpoint Detection and Response (EDR) solutions through simulated Advanced Persistent Threat (APT) techniques, mapped to the MITRE ATT&CK framework.
+A comprehensive C++ framework for testing and evaluating Endpoint Detection and Response (EDR) solutions through simulated Advanced Persistent Threat (APT) techniques, mapped to the MITRE ATT&CK framework.
 
 ---
 
+## 👥 Team
 
+| Member | Role | Modules |
+|--------|------|---------|
+| **Jdeep** | Lead Developer | CLI Tool, Agent Core, Integration & Snapshot |
+| **Bipin** | Exploit Developer | Exploit Scripts Module (CPL, DLL, EXE, HTA, Syscalls) |
+| **Karthik** | ML Engineer | ML Framework (Detection, Scoring, Correlation) |
+
+---
 
 ## 🎯 Overview
 
@@ -22,108 +29,307 @@ The EDR Adaptive Framework is designed to help security teams:
 
 ## 🏗️ Architecture
 
-The framework follows a modular architecture with distinct layers for flexibility and extensibility:
+The framework follows a modular C++ architecture with distinct layers:
 
 <img width="1596" height="1072" alt="image" src="https://github.com/user-attachments/assets/8706fbd0-6f73-4fb6-afdf-3c3273fd7bea" />
 
----
-
-## ✨ Features
-
-### 🔧 Core Capabilities
-
-| Feature | Description |
-|---------|-------------|
-| **Modular Design** | Plugin-based architecture for easy extension |
-| **MITRE ATT&CK Mapping** | All techniques mapped to ATT&CK framework |
-| **Automated Testing** | Scheduled and batch execution support |
-| **Real-time Monitoring** | Live telemetry and EDR event capture |
-| **Comprehensive Reporting** | PDF, HTML, JSON, and STIX export formats |
-
-### 🔒 Security Features
-
-- **AES-256/RSA Encryption** for payloads and communications
-- **JWT/OAuth2 Authentication** with RBAC
-- **Immutable Audit Trail** for compliance
-- **Artifact Cleanup** for safe testing
-
----
-
-## 📦 Modules
-
-### 🟢 Agent Core
-- **Orchestrator**: Execution flow and state machine management
-- **Config Manager**: YAML/JSON configuration with environment variables
-- **Plugin Loader**: Dynamic import and hot reload capabilities
-- **Output Handler**: Multi-format result streaming
-- **Telemetry**: EDR monitoring and event capture
-
-### 🟠 Exploit Scripts Module
-Attack techniques categorized by MITRE ATT&CK tactics:
-
-| Tactic | Techniques |
-|--------|------------|
-| **Initial Access** | Phishing Payloads, Drive-by Download, Supply Chain |
-| **Execution** | CPL (rundll32), HTA (mshta), PowerShell, WMI/COM |
-| **Persistence** | Registry Keys, Scheduled Tasks, Services, WMI Subscriptions |
-| **Privilege Escalation** | Token Manipulation, UAC Bypass, CVE Exploits |
-| **Defense Evasion** | DLL Sideload, Process Injection, EDR-Redir, Direct Syscalls |
-| **Credential Access** | LSASS Dump, Kerberoasting, SAM Extract |
-| **Lateral Movement** | PsExec/WMI, RDP Hijack, Pass-the-Hash |
-| **C2** | HTTP/S Beacon, DNS Tunnel, SMB Pipe |
-
-### 🟣 ML Framework
-- **Detection Engine**: Pattern recognition and anomaly detection
-- **Evasion Scorer**: Success rate calculation and risk analysis
-- **Event Correlator**: ATT&CK mapping and timeline building
-- **Predictive Model**: EDR behavior prediction and gap analysis
-
-### 🔴 Anti-Analysis Module
-- **Sandbox Detection**: VM detection and timing checks
-- **Anti-Debug**: Debugger detection and Int3 traps
-- **Hook Detector**: API hooks and ETW patch detection
-- **Environment Fingerprinting**: User activity and system profiling
-
-### 🧬 Payload Generator
-- **Shellcode Generation**: Donut, ScareCrow, Custom ASM
-- **Obfuscation**: String encryption, control flow obfuscation
-- **Packer/Crypter**: UPX, custom packers, code signing
-
----
-
-
-## 🗺️ MITRE ATT&CK Coverage
-
-The framework covers techniques across the Cyber Kill Chain:
-
 ```
-1. Reconnaissance  →  2. Weaponization  →  3. Delivery  →  4. Exploitation
-       ↓                                                          ↓
-5. Installation  ←  6. Command & Control  ←  7. Actions on Objectives
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     EDR BYPASS TESTING FRAMEWORK                            │
+│                APT Simulation & EDR Evasion Assessment Tool                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                              ┌─────────────────────┐
+                              │   CLI TOOL (.exe)   │  👤 Jdeep
+                              │  Command Parser &   │
+                              │    Entry Point      │
+                              └──────────┬──────────┘
+                                         │
+                                         ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              AGENT CORE                          👤 Jdeep   │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
+│  │ Orchestrator │  │   Output     │  │   Cleaner    │  │  Telemetry   │    │
+│  │ (Exec Flow)  │  │   Handler    │  │  (Artifact   │  │   Monitor    │    │
+│  │              │  │  (Results)   │  │   Removal)   │  │              │    │
+│  └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘    │
+└─────────────────────────────────────────┬───────────────────────────────────┘
+                                          │
+                                          ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       EXPLOIT SCRIPTS MODULE                     👤 Bipin   │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐                    │
+│  │   CPL    │  │   DLL    │  │   EXE    │  │   HTA    │                    │
+│  │  Attack  │  │ Sideload │  │ Injection│  │  Attack  │                    │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘                    │
+│  ┌─────────────────────────┐  ┌─────────────────────────┐                  │
+│  │     EDR-Redir           │  │    Direct Syscalls      │                  │
+│  │  (Bind Filter Attack)   │  │  (ETW/Callback Bypass)  │                  │
+│  └─────────────────────────┘  └─────────────────────────┘                  │
+└─────────────────────────────────────────┬───────────────────────────────────┘
+                                          │
+                                          ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          ML FRAMEWORK                          👤 Karthik  │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐          │
+│  │Detection Analysis│  │  Evasion Scoring │  │ Event Correlation│          │
+│  │(Pattern Recog.)  │  │  (Success Rate)  │  │ (ATT&CK Mapping) │          │
+│  └──────────────────┘  └──────────────────┘  └──────────────────┘          │
+└─────────────────────────────────────────┬───────────────────────────────────┘
+                                          │
+                                          ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    INTEGRATION & SNAPSHOT MODULE               👤 Jdeep     │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐          │
+│  │  EDR Integration │  │ Snapshot Manager │  │   Clean Module   │          │
+│  │ (CrowdStrike,    │  │  (VM State Save) │  │(Restore Snapshot)│          │
+│  │  Defender, etc.) │  │                  │  │                  │          │
+│  └──────────────────┘  └──────────────────┘  └──────────────────┘          │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Evasion Techniques Library
+---
 
-| Technique | Description |
-|-----------|-------------|
-| Direct Syscalls | Bypass user-mode hooks via direct NT syscalls |
-| PPID Spoofing | Fake parent process to evade behavioral detection |
-| DLL Sideloading | Abuse legitimate applications for DLL loading |
-| Process Hollowing | Replace legitimate process memory with malicious code |
-| ETW Patching | Disable Event Tracing for Windows |
-| LOLBAS | Living Off The Land Binaries and Scripts |
-| Callback Patching | Remove EDR kernel callbacks |
-| Module Stomping | Overwrite legitimate module memory |
-| Thread Hijacking | Execute code in existing thread context |
-| AMSI Bypass | Disable Antimalware Scan Interface |
+## 📁 Project Structure
+
+```
+EDR-Adaptive-Framework/
+├── CMakeLists.txt              # Main build configuration
+├── README.md
+├── config/
+│   └── config.yaml             # Framework configuration
+│
+├── include/                    # Header files
+│   ├── cli/
+│   │   └── cli.hpp             # CLI interface [Jdeep]
+│   ├── agent_core/
+│   │   └── agent.hpp           # Agent core [Jdeep]
+│   ├── integration/
+│   │   └── integration_manager.hpp  # EDR/VM integration [Jdeep]
+│   ├── exploits/
+│   │   └── exploit_manager.hpp # Exploit techniques [BIPIN]
+│   └── ml_framework/
+│       └── ml_engine.hpp       # ML analysis [KARTHIK]
+│
+├── src/                        # Source files
+│   ├── main.cpp                # Entry point
+│   ├── cli/                    # CLI implementation [Jdeep]
+│   ├── agent_core/             # Agent core [Jdeep]
+│   ├── integration/            # Integration module [Jdeep]
+│   ├── exploits/               # Exploit scripts [BIPIN]
+│   └── ml_framework/           # ML framework [KARTHIK]
+│
+└── docs/
+    └── architecture.drawio     # Architecture diagram
+```
 
 ---
 
+## 🚀 Building
 
-## 📚 References
+### Prerequisites
 
-- [EDR-Redir](https://github.com/TwoSevenOneT/EDR-Redir) - Bind Filter Attack PoC
-- [MDPI Paper](https://www.mdpi.com/2624-800X/1/3/21) - EDR Bypass Research
-- [MITRE ATT&CK](https://attack.mitre.org/) - Adversarial Tactics & Techniques
-- [LOLBAS Project](https://lolbas-project.github.io/) - Living Off The Land Binaries
+- **CMake** 3.16+
+- **C++17** compatible compiler (MSVC, GCC, Clang)
+- **Windows SDK** (for Windows API)
+
+### Build Steps
+
+```bash
+# Clone repository
+git clone https://github.com/JDeep1234/EDR-Adaptive-Framework.git
+cd EDR-Adaptive-Framework
+
+# Create build directory
+mkdir build && cd build
+
+# Configure
+cmake ..
+
+# Build
+cmake --build . --config Release
+
+# Run
+./bin/edr_framework.exe --help
+```
+
+---
+
+## 📖 Usage
+
+### Basic Commands
+
+```bash
+# Execute single technique
+edr_framework run -t T1055 --verbose
+
+# Run attack campaign
+edr_framework campaign -c attacks.yaml -o html
+
+# List available techniques
+edr_framework list
+
+# Check EDR status
+edr_framework status
+
+# Create VM snapshot
+edr_framework snapshot -s clean_state
+
+# Cleanup artifacts
+edr_framework clean --all
+```
+
+### Campaign File Example (attacks.yaml)
+
+```yaml
+name: "APT Simulation Campaign"
+techniques:
+  - id: T1055
+    name: "Process Injection"
+    options:
+      target: notepad.exe
+      
+  - id: T1574.002
+    name: "DLL Side-Loading"
+    options:
+      app: Teams
+
+  - id: T1218.005
+    name: "Mshta Execution"
+```
+
+---
+
+## 🎯 MITRE ATT&CK Coverage
+
+| Technique ID | Name | Tactic | Owner |
+|--------------|------|--------|-------|
+| T1055 | Process Injection | Defense Evasion | Bipin |
+| T1055.012 | Process Hollowing | Defense Evasion | Bipin |
+| T1218.002 | Control Panel | Defense Evasion | Bipin |
+| T1218.005 | Mshta | Defense Evasion | Bipin |
+| T1574.002 | DLL Side-Loading | Persistence | Bipin |
+| T1106 | Native API (Syscalls) | Execution | Bipin |
+| T1562.001 | Disable Security Tools | Defense Evasion | Bipin |
+
+---
+
+## 🔧 Module Details
+
+### 🟢 Jdeep's Modules (CLI, Agent Core, Integration)
+
+**CLI Tool (`src/cli/`)**
+- Command parsing with Typer-style interface
+- Banner and help display
+- Option handling
+
+**Agent Core (`src/agent_core/`)**
+- `Orchestrator`: Execution state machine
+- `OutputHandler`: JSON, CSV, HTML, STIX export
+- `Cleaner`: Artifact removal (files, registry, services)
+- `TelemetryMonitor`: EDR event monitoring
+
+**Integration (`src/integration/`)**
+- `EDRConnector`: CrowdStrike, Defender, Carbon Black APIs
+- `SnapshotManager`: Hyper-V, VirtualBox, VMware support
+- `CleanModule`: System backup and restore
+
+### 🟠 Bipin's Module (Exploit Scripts)
+
+**Location:** `src/exploits/`
+
+**Techniques to Implement:**
+- `CPLAttack`: Control Panel execution via rundll32
+- `DLLSideload`: DLL hijacking (MS Teams, etc.)
+- `EXEInjection`: EarlyBird APC injection
+- `HTAAttack`: Mshta.exe execution
+- `EDRRedir`: Minifilter bind attack
+- `DirectSyscalls`: ETW/callback bypass
+
+**How to Add New Exploit:**
+```cpp
+// In src/exploits/your_exploit.cpp
+class YourExploit : public BaseExploit {
+public:
+    ExploitResult execute(const std::map<std::string, std::string>& options) override {
+        // Your implementation
+    }
+    
+    TechniqueInfo getInfo() const override {
+        // Return MITRE info
+    }
+};
+```
+
+### 🟣 Karthik's Module (ML Framework)
+
+**Location:** `src/ml_framework/`
+
+**Components to Implement:**
+- `DetectionAnalyzer`: Pattern recognition, ML detection
+- `EvasionScorer`: Success rate calculation
+- `EventCorrelator`: MITRE ATT&CK mapping
+
+**How to Add ML Model:**
+```cpp
+// In src/ml_framework/your_analyzer.cpp
+class YourAnalyzer : public BaseAnalyzer {
+public:
+    void analyze(const void* executionResult) override {
+        // Your ML analysis
+    }
+    
+    std::string getReport() const override {
+        // Return analysis results
+    }
+};
+```
+
+---
+
+## 🔒 Supported EDRs
+
+| EDR | Integration Status |
+|-----|-------------------|
+| Microsoft Defender | ✅ Implemented |
+| CrowdStrike Falcon | 🔄 API Ready |
+| VMware Carbon Black | 🔄 API Ready |
+| SentinelOne | 📋 Planned |
+| Sophos | 📋 Planned |
+
+---
+
+## 🖥️ VM Providers
+
+| Provider | Status |
+|----------|--------|
+| Hyper-V | ✅ Implemented |
+| VirtualBox | ✅ Implemented |
+| VMware Workstation | ✅ Implemented |
+
+---
+
+## ⚠️ Disclaimer
+
+This tool is intended for **authorized security testing only**. Always obtain proper authorization before testing. Misuse of this tool may violate laws and regulations.
+
+---
+
+## 📄 License
+
+MIT License - See [LICENSE](LICENSE) for details.
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/your-feature`)
+3. Commit changes (`git commit -m 'Add feature'`)
+4. Push to branch (`git push origin feature/your-feature`)
+5. Open Pull Request
+
+---
+
+**Made with ❤️ by Jdeep, Bipin & Karthik**
 

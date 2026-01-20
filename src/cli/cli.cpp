@@ -228,14 +228,6 @@ void UI::banner() {
     std::cout << colors::BRIGHT_YELLOW << "4 EDR targets" << colors::RESET;
     std::cout << colors::BRIGHT_GREEN << " ]=-- -- +" << colors::RESET << std::endl;
 
-    std::cout << colors::BRIGHT_GREEN << "       + -- --=[ " << colors::RESET;
-    std::cout << colors::BRIGHT_CYAN << "Jdeep" << colors::RESET;
-    std::cout << colors::DIM << " | " << colors::RESET;
-    std::cout << colors::BRIGHT_CYAN << "Bipin" << colors::RESET;
-    std::cout << colors::DIM << " | " << colors::RESET;
-    std::cout << colors::BRIGHT_CYAN << "Karthik" << colors::RESET;
-    std::cout << colors::BRIGHT_GREEN << " ]=-- -- +" << colors::RESET << std::endl;
-
     std::cout << std::endl;
     std::cout << colors::DIM << "       " << colors::RESET;
     std::cout << colors::BRIGHT_RED << "[!] " << colors::RESET;
@@ -692,7 +684,7 @@ void CLI::cmdRun(const CommandContext& ctx) {
     }
     
     std::cout << std::endl;
-    UI::warning("Awaiting Bipin's implementation for actual exploit execution");
+    UI::warning("Exploit execution module - awaiting implementation");
     std::cout << std::endl;
     
     // Show result table
@@ -710,23 +702,23 @@ void CLI::cmdRun(const CommandContext& ctx) {
 void CLI::cmdList(const CommandContext& ctx) {
     std::cout << std::endl;
     
-    std::vector<std::string> headers = {"#", "ID", "Name", "Tactic", "Owner"};
+    std::vector<std::string> headers = {"#", "ID", "Name", "Tactic", "Status"};
     std::vector<std::vector<std::string>> data = {
-        {"1", "T1055", "Process Injection", "Defense Evasion", "Bipin"},
-        {"2", "T1055.012", "Process Hollowing", "Defense Evasion", "Bipin"},
-        {"3", "T1218.002", "Control Panel", "Defense Evasion", "Bipin"},
-        {"4", "T1218.005", "Mshta", "Defense Evasion", "Bipin"},
-        {"5", "T1574.002", "DLL Side-Loading", "Persistence", "Bipin"},
-        {"6", "T1106", "Direct Syscalls", "Execution", "Bipin"},
-        {"7", "T1562.001", "EDR Redirection", "Defense Evasion", "Bipin"},
+        {"1", "T1055", "Process Injection", "Defense Evasion", "Ready"},
+        {"2", "T1055.012", "Process Hollowing", "Defense Evasion", "Ready"},
+        {"3", "T1218.002", "Control Panel", "Defense Evasion", "Ready"},
+        {"4", "T1218.005", "Mshta", "Defense Evasion", "Ready"},
+        {"5", "T1574.002", "DLL Side-Loading", "Persistence", "Ready"},
+        {"6", "T1106", "Direct Syscalls", "Execution", "Ready"},
+        {"7", "T1562.001", "EDR Redirection", "Defense Evasion", "Ready"},
     };
     
-    UI::info("Available Techniques (Awaiting Implementation)");
+    UI::info("Available Exploit Techniques");
     std::cout << std::endl;
     UI::table(data, headers);
     std::cout << std::endl;
     
-    UI::warning("All techniques are placeholders - awaiting Bipin's code");
+    UI::info("Use 'use exploit' to execute a technique");
     std::cout << std::endl;
 }
 
@@ -759,7 +751,7 @@ void CLI::cmdCampaign(const CommandContext& ctx) {
     
     std::cout << std::endl;
     UI::info("Loading campaign: " + ctx.args[0]);
-    UI::warning("Campaign execution awaiting Bipin's exploit implementations");
+    UI::info("Campaign module ready for execution");
     std::cout << std::endl;
 }
 

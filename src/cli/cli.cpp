@@ -4,6 +4,7 @@
  * Author: Jdeep
  * 
  * Claude-style interactive terminal with colors and slash commands.
+ * ASCII-compatible version for MinGW.
  */
 
 #include "cli/cli.hpp"
@@ -11,16 +12,20 @@
 #include <sstream>
 #include <algorithm>
 #include <chrono>
-#include <thread>
 #include <iomanip>
 #include <ctime>
+#include <tuple>
 
 #ifdef _WIN32
 #include <windows.h>
-#include <conio.h>
+#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+#endif
+#define SLEEP_MS(x) Sleep(x)
 #else
 #include <unistd.h>
 #include <termios.h>
+#define SLEEP_MS(x) usleep((x) * 1000)
 #endif
 
 namespace edr {
@@ -37,8 +42,6 @@ void UI::enableAnsi() {
     GetConsoleMode(hOut, &dwMode);
     dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
     SetConsoleMode(hOut, dwMode);
-    
-    // Set console to UTF-8
     SetConsoleOutputCP(CP_UTF8);
 #endif
 }
@@ -52,70 +55,70 @@ void UI::println(const std::string& text, const char* color) {
 }
 
 void UI::info(const std::string& text) {
-    std::cout << colors::CYAN << "● " << colors::RESET << text << std::endl;
+    std::cout << colors::CYAN << "[*] " << colors::RESET << text << std::endl;
 }
 
 void UI::success(const std::string& text) {
-    std::cout << colors::BRIGHT_GREEN << "✓ " << colors::RESET << text << std::endl;
+    std::cout << colors::BRIGHT_GREEN << "[+] " << colors::RESET << text << std::endl;
 }
 
 void UI::warning(const std::string& text) {
-    std::cout << colors::BRIGHT_YELLOW << "⚠ " << colors::RESET << text << std::endl;
+    std::cout << colors::BRIGHT_YELLOW << "[!] " << colors::RESET << text << std::endl;
 }
 
 void UI::error(const std::string& text) {
-    std::cout << colors::BRIGHT_RED << "✗ " << colors::RESET << text << std::endl;
+    std::cout << colors::BRIGHT_RED << "[-] " << colors::RESET << text << std::endl;
 }
 
 void UI::debug(const std::string& text) {
-    std::cout << colors::DIM << "◦ " << text << colors::RESET << std::endl;
+    std::cout << colors::DIM << "[.] " << text << colors::RESET << std::endl;
 }
 
 void UI::box(const std::string& title, const std::string& content) {
     int width = 60;
-    std::string topBorder = "╭" + std::string(width - 2, '─') + "╮";
-    std::string bottomBorder = "╰" + std::string(width - 2, '─') + "╯";
+    std::string topBorder = "+" + std::string(width - 2, '-') + "+";
+    std::string bottomBorder = "+" + std::string(width - 2, '-') + "+";
     
     std::cout << colors::CYAN << topBorder << colors::RESET << std::endl;
     
     // Title
-    int padding = (width - 2 - title.length()) / 2;
-    std::cout << colors::CYAN << "│" << colors::RESET;
+    int padding = (width - 2 - static_cast<int>(title.length())) / 2;
+    std::cout << colors::CYAN << "|" << colors::RESET;
     std::cout << std::string(padding, ' ');
     std::cout << colors::BOLD << colors::BRIGHT_CYAN << title << colors::RESET;
-    std::cout << std::string(width - 2 - padding - title.length(), ' ');
-    std::cout << colors::CYAN << "│" << colors::RESET << std::endl;
+    std::cout << std::string(width - 2 - padding - static_cast<int>(title.length()), ' ');
+    std::cout << colors::CYAN << "|" << colors::RESET << std::endl;
     
     // Divider
-    std::cout << colors::CYAN << "├" << std::string(width - 2, '─') << "┤" << colors::RESET << std::endl;
+    std::cout << colors::CYAN << "+" << std::string(width - 2, '-') << "+" << colors::RESET << std::endl;
     
     // Content (split by newlines)
     std::istringstream stream(content);
     std::string line;
     while (std::getline(stream, line)) {
-        std::cout << colors::CYAN << "│ " << colors::RESET;
+        std::cout << colors::CYAN << "| " << colors::RESET;
         std::cout << line;
-        int linePadding = width - 3 - line.length();
+        int linePadding = width - 3 - static_cast<int>(line.length());
         if (linePadding > 0) std::cout << std::string(linePadding, ' ');
-        std::cout << colors::CYAN << "│" << colors::RESET << std::endl;
+        std::cout << colors::CYAN << "|" << colors::RESET << std::endl;
     }
     
     std::cout << colors::CYAN << bottomBorder << colors::RESET << std::endl;
 }
 
 void UI::panel(const std::string& text, const char* borderColor) {
-    std::cout << borderColor << "┃ " << colors::RESET << text << std::endl;
+    std::cout << borderColor << "| " << colors::RESET << text << std::endl;
 }
 
 void UI::divider(const char* color) {
-    std::cout << color << "────────────────────────────────────────────────────────────" 
+    std::cout << color << "------------------------------------------------------------" 
               << colors::RESET << std::endl;
 }
 
 void UI::spinner(const std::string& text) {
-    const char* frames[] = {"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"};
+    const char* frames[] = {"-", "\\", "|", "/"};
     static int frame = 0;
-    std::cout << "\r" << colors::CYAN << frames[frame % 10] << colors::RESET 
+    std::cout << "\r" << colors::CYAN << frames[frame % 4] << colors::RESET 
               << " " << text << std::flush;
     frame++;
 }
@@ -126,8 +129,8 @@ void UI::progress(int current, int total, const std::string& label) {
     int filled = static_cast<int>(progress * width);
     
     std::cout << "\r" << colors::DIM << "[" << colors::RESET;
-    std::cout << colors::BRIGHT_GREEN << std::string(filled, '█');
-    std::cout << colors::DIM << std::string(width - filled, '░');
+    std::cout << colors::BRIGHT_GREEN << std::string(filled, '#');
+    std::cout << colors::DIM << std::string(width - filled, '-');
     std::cout << colors::DIM << "]" << colors::RESET;
     std::cout << " " << static_cast<int>(progress * 100) << "% " << label << std::flush;
     
@@ -156,14 +159,14 @@ void UI::table(const std::vector<std::vector<std::string>>& data,
     if (!headers.empty()) {
         std::cout << colors::BOLD;
         for (size_t i = 0; i < headers.size(); ++i) {
-            std::cout << std::left << std::setw(widths[i]) << headers[i];
+            std::cout << std::left << std::setw(static_cast<int>(widths[i])) << headers[i];
         }
         std::cout << colors::RESET << std::endl;
         
         // Header underline
         std::cout << colors::DIM;
-        for (size_t w : widths) {
-            std::cout << std::string(w, '─');
+        for (size_t i = 0; i < widths.size(); ++i) {
+            std::cout << std::string(widths[i], '-');
         }
         std::cout << colors::RESET << std::endl;
     }
@@ -171,7 +174,7 @@ void UI::table(const std::vector<std::vector<std::string>>& data,
     // Print data rows
     for (const auto& row : data) {
         for (size_t i = 0; i < row.size(); ++i) {
-            std::cout << std::left << std::setw(widths[i]) << row[i];
+            std::cout << std::left << std::setw(static_cast<int>(widths[i])) << row[i];
         }
         std::cout << std::endl;
     }
@@ -202,13 +205,13 @@ void UI::clear() {
 
 void UI::banner() {
     std::cout << colors::BRIGHT_CYAN << R"(
-    ███████╗██████╗ ██████╗     ███████╗██████╗  █████╗ ███╗   ███╗███████╗
-    ██╔════╝██╔══██╗██╔══██╗    ██╔════╝██╔══██╗██╔══██╗████╗ ████║██╔════╝
-    █████╗  ██║  ██║██████╔╝    █████╗  ██████╔╝███████║██╔████╔██║█████╗  
-    ██╔══╝  ██║  ██║██╔══██╗    ██╔══╝  ██╔══██╗██╔══██║██║╚██╔╝██║██╔══╝  
-    ███████╗██████╔╝██║  ██║    ██║     ██║  ██║██║  ██║██║ ╚═╝ ██║███████╗
-    ╚══════╝╚═════╝ ╚═╝  ╚═╝    ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝
-)" << colors::RESET << std::endl;
+    ___________  __________    ___________  ___    __  _________
+   / ____/ __ \/ ____/  _/   / ____/ __ \/   |  /  |/  / ____/
+  / __/ / / / / __/  / /    / /_  / /_/ / /| | / /|_/ / __/   
+ / /___/ /_/ / /____/ /    / __/ / _, _/ ___ |/ /  / / /___   
+/_____/_____/_____/___/   /_/   /_/ |_/_/  |_/_/  /_/_____/   
+                                                              
+)" << colors::RESET;
 
     std::cout << colors::DIM << "    APT Simulation & EDR Evasion Assessment Platform v2.0" 
               << colors::RESET << std::endl;
@@ -359,7 +362,7 @@ void CLI::showHelp(const CommandContext& ctx) {
         if (aliases_.count(cmdName)) cmdName = aliases_[cmdName];
         
         if (commands_.count(cmdName)) {
-            auto& cmd = commands_[cmdName];
+            Command& cmd = commands_[cmdName];
             std::cout << std::endl;
             std::cout << colors::BOLD << "  /" << cmd.name << colors::RESET;
             if (!cmd.alias.empty()) {
@@ -381,19 +384,26 @@ void CLI::showHelp(const CommandContext& ctx) {
     std::cout << colors::BOLD << "  Available Commands" << colors::RESET << std::endl;
     std::cout << std::endl;
     
-    std::vector<std::tuple<std::string, std::string, std::string>> cmdList = {
-        {"Testing", "/run, /list, /campaign", "Execute and manage attack techniques"},
-        {"System", "/status, /snapshot, /clean", "System and EDR operations"},
-        {"Config", "/config, /history", "Configuration and history"},
-        {"General", "/help, /clear, /exit", "General commands"},
-    };
+    // Use simple approach instead of structured bindings
+    std::cout << colors::CYAN << "  Testing" << colors::RESET << std::endl;
+    std::cout << "    " << colors::BRIGHT_CYAN << "/run, /list, /campaign" << colors::RESET 
+              << colors::DIM << " - Execute and manage attack techniques" << colors::RESET << std::endl;
+    std::cout << std::endl;
     
-    for (const auto& [category, cmds, desc] : cmdList) {
-        std::cout << colors::CYAN << "  " << category << colors::RESET << std::endl;
-        std::cout << "    " << colors::BRIGHT_CYAN << cmds << colors::RESET 
-                  << colors::DIM << " - " << desc << colors::RESET << std::endl;
-        std::cout << std::endl;
-    }
+    std::cout << colors::CYAN << "  System" << colors::RESET << std::endl;
+    std::cout << "    " << colors::BRIGHT_CYAN << "/status, /snapshot, /clean" << colors::RESET 
+              << colors::DIM << " - System and EDR operations" << colors::RESET << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << colors::CYAN << "  Config" << colors::RESET << std::endl;
+    std::cout << "    " << colors::BRIGHT_CYAN << "/config, /history" << colors::RESET 
+              << colors::DIM << " - Configuration and history" << colors::RESET << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << colors::CYAN << "  General" << colors::RESET << std::endl;
+    std::cout << "    " << colors::BRIGHT_CYAN << "/help, /clear, /exit" << colors::RESET 
+              << colors::DIM << " - General commands" << colors::RESET << std::endl;
+    std::cout << std::endl;
     
     std::cout << colors::DIM << "  Type /help <command> for detailed help" << colors::RESET << std::endl;
     std::cout << std::endl;
@@ -403,7 +413,7 @@ void CLI::printPrompt() {
     std::cout << colors::BRIGHT_GREEN << "edr" << colors::RESET 
               << colors::DIM << "@" << colors::RESET
               << colors::BRIGHT_CYAN << "framework" << colors::RESET
-              << colors::BRIGHT_YELLOW << " ❯ " << colors::RESET;
+              << colors::BRIGHT_YELLOW << " > " << colors::RESET;
 }
 
 std::string CLI::readLine() {
@@ -421,16 +431,18 @@ CommandContext CLI::parseInput(const std::string& input) {
         if (token.substr(0, 2) == "--") {
             // Long option
             std::string key = token.substr(2);
-            if (stream >> token && token[0] != '-') {
-                ctx.options[key] = token;
+            std::string val;
+            if (stream >> val && val[0] != '-') {
+                ctx.options[key] = val;
             } else {
                 ctx.options[key] = "true";
             }
         } else if (token[0] == '-' && token.length() == 2) {
             // Short option
             std::string key(1, token[1]);
-            if (stream >> token && token[0] != '-') {
-                ctx.options[key] = token;
+            std::string val;
+            if (stream >> val && val[0] != '-') {
+                ctx.options[key] = val;
             } else {
                 ctx.options[key] = "true";
             }
@@ -447,8 +459,10 @@ CommandContext CLI::parseInput(const std::string& input) {
 
 bool CLI::processInput(const std::string& input) {
     std::string trimmed = input;
-    trimmed.erase(0, trimmed.find_first_not_of(" \t"));
-    trimmed.erase(trimmed.find_last_not_of(" \t") + 1);
+    size_t start = trimmed.find_first_not_of(" \t");
+    size_t end = trimmed.find_last_not_of(" \t");
+    if (start == std::string::npos) return true;
+    trimmed = trimmed.substr(start, end - start + 1);
     
     if (trimmed.empty()) return true;
     
@@ -458,7 +472,7 @@ bool CLI::processInput(const std::string& input) {
     // Check if it's a slash command
     if (trimmed[0] == '/') {
         std::string cmdLine = trimmed.substr(1);
-        auto ctx = parseInput(cmdLine);
+        CommandContext ctx = parseInput(cmdLine);
         
         if (ctx.args.empty()) return true;
         
@@ -519,7 +533,7 @@ int CLI::runCommand(int argc, char* argv[]) {
     std::string arg = argv[1];
     if (arg == "--help" || arg == "-h") {
         UI::banner();
-        showHelp({});
+        showHelp(CommandContext());
         return 0;
     }
     
@@ -565,15 +579,15 @@ void CLI::cmdRun(const CommandContext& ctx) {
     
     // Simulate execution with progress
     UI::info("Preparing environment...");
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    SLEEP_MS(500);
     
     UI::info("Creating snapshot...");
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    SLEEP_MS(300);
     
     UI::info("Executing technique " + techniqueId + "...");
     for (int i = 0; i <= 100; i += 10) {
         UI::progress(i, 100, techniqueId);
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        SLEEP_MS(100);
     }
     
     std::cout << std::endl;
@@ -657,7 +671,7 @@ void CLI::cmdSnapshot(const CommandContext& ctx) {
     if (action == "create") {
         std::string name = ctx.args.size() > 1 ? ctx.args[1] : "snapshot_" + currentSession_;
         UI::info("Creating snapshot: " + name);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        SLEEP_MS(500);
         UI::success("Snapshot created");
     } else if (action == "restore") {
         if (ctx.args.size() < 2) {
@@ -665,7 +679,7 @@ void CLI::cmdSnapshot(const CommandContext& ctx) {
             return;
         }
         UI::info("Restoring snapshot: " + ctx.args[1]);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        SLEEP_MS(500);
         UI::success("Snapshot restored");
     } else {
         UI::info("Available snapshots:");
@@ -681,12 +695,12 @@ void CLI::cmdClean(const CommandContext& ctx) {
     if (ctx.options.count("all")) {
         if (UI::confirm("Remove ALL artifacts and restore system?")) {
             UI::info("Performing deep clean...");
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            SLEEP_MS(500);
             UI::success("All artifacts cleaned");
         }
     } else {
         UI::info("Cleaning session artifacts...");
-        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+        SLEEP_MS(300);
         UI::success("Session cleaned");
     }
     

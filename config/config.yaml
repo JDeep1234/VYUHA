@@ -1,0 +1,99 @@
+# EDR Adaptive Framework Configuration
+# =====================================
+
+# General settings
+debug: false
+log_level: INFO
+output_dir: results
+
+# Agent Core settings
+agent:
+  session_timeout: 3600  # seconds
+  auto_cleanup: true
+  monitor_delay: 1  # seconds to wait for EDR to process
+
+# Telemetry monitoring
+telemetry:
+  enabled: true
+  poll_interval: 0.5  # seconds
+  max_events: 1000
+  capture_security_events: true
+  capture_process_events: true
+
+# EDR Integration
+edr:
+  auto_detect: true
+  providers:
+    - defender
+    - crowdstrike
+    - carbonblack
+  
+  # CrowdStrike configuration
+  crowdstrike:
+    enabled: false
+    # client_id: YOUR_CLIENT_ID
+    # client_secret: YOUR_CLIENT_SECRET
+    base_url: https://api.crowdstrike.com
+  
+  # Microsoft Defender ATP configuration
+  defender:
+    enabled: true
+    # tenant_id: YOUR_TENANT_ID
+    # client_id: YOUR_CLIENT_ID
+    # client_secret: YOUR_CLIENT_SECRET
+  
+  # Carbon Black configuration
+  carbonblack:
+    enabled: false
+    # api_url: YOUR_API_URL
+    # api_key: YOUR_API_KEY
+    # org_key: YOUR_ORG_KEY
+
+# VM Snapshot management
+snapshot:
+  provider: auto  # auto, hyperv, virtualbox, vmware
+  auto_restore: false
+  snapshot_prefix: edr_test_
+
+# Report generation
+reports:
+  format: html  # html, pdf, json, csv, stix
+  include_telemetry: true
+  include_mitre_mapping: true
+  include_recommendations: true
+  
+  # STIX export settings
+  stix:
+    version: "2.1"
+    include_attack_patterns: true
+
+# Security settings
+security:
+  encrypt_payloads: true
+  audit_logging: true
+  max_session_duration: 7200  # seconds
+
+# Technique categories
+techniques:
+  enabled_tactics:
+    - initial_access
+    - execution
+    - persistence
+    - privilege_escalation
+    - defense_evasion
+    - credential_access
+    - lateral_movement
+    - command_and_control
+  
+  # Dangerous techniques require explicit confirmation
+  dangerous_techniques:
+    - T1003.001  # LSASS Dump
+    - T1055.012  # Process Hollowing
+    - T1134      # Token Manipulation
+
+# Logging configuration
+logging:
+  file: logs/edr_framework.log
+  max_size: 10485760  # 10MB
+  backup_count: 5
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

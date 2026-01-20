@@ -1,10 +1,10 @@
 /*
- * CLI Module - Header
- * ====================
+ * Interactive CLI - Header
+ * =========================
  * Author: Jdeep
  * 
- * Command line interface for the EDR Framework.
- * Handles argument parsing and command dispatch.
+ * Claude-style interactive terminal interface.
+ * Features: Colors, slash commands, interactive mode, real-time output.
  */
 
 #ifndef EDR_CLI_HPP
@@ -13,59 +13,170 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <iostream>
+#include <functional>
+#include <memory>
 
 namespace edr {
 namespace cli {
 
-/**
- * Parsed command structure
- */
-struct Command {
-    std::string action;              // run, campaign, list, status, clean
-    std::string techniqueId;         // MITRE technique ID (e.g., T1055)
-    std::string campaignFile;        // Campaign YAML/JSON file
-    std::string outputFormat;        // json, csv, html, stix
-    std::string snapshotName;        // VM snapshot name
-    bool autoClean = true;           // Auto cleanup after execution
-    bool verbose = false;            // Verbose output
-    bool dryRun = false;             // Dry run mode
-    std::map<std::string, std::string> options;  // Additional options
+// ============================================================================
+// ANSI COLOR CODES
+// ============================================================================
+
+namespace colors {
+    // Reset
+    constexpr const char* RESET = "\033[0m";
+    
+    // Regular colors
+    constexpr const char* BLACK = "\033[30m";
+    constexpr const char* RED = "\033[31m";
+    constexpr const char* GREEN = "\033[32m";
+    constexpr const char* YELLOW = "\033[33m";
+    constexpr const char* BLUE = "\033[34m";
+    constexpr const char* MAGENTA = "\033[35m";
+    constexpr const char* CYAN = "\033[36m";
+    constexpr const char* WHITE = "\033[37m";
+    
+    // Bright colors
+    constexpr const char* BRIGHT_RED = "\033[91m";
+    constexpr const char* BRIGHT_GREEN = "\033[92m";
+    constexpr const char* BRIGHT_YELLOW = "\033[93m";
+    constexpr const char* BRIGHT_BLUE = "\033[94m";
+    constexpr const char* BRIGHT_MAGENTA = "\033[95m";
+    constexpr const char* BRIGHT_CYAN = "\033[96m";
+    
+    // Styles
+    constexpr const char* BOLD = "\033[1m";
+    constexpr const char* DIM = "\033[2m";
+    constexpr const char* ITALIC = "\033[3m";
+    constexpr const char* UNDERLINE = "\033[4m";
+    
+    // Background
+    constexpr const char* BG_RED = "\033[41m";
+    constexpr const char* BG_GREEN = "\033[42m";
+    constexpr const char* BG_YELLOW = "\033[43m";
+    constexpr const char* BG_BLUE = "\033[44m";
+}
+
+// ============================================================================
+// UI COMPONENTS
+// ============================================================================
+
+class UI {
+public:
+    // Print colored text
+    static void print(const std::string& text, const char* color = colors::RESET);
+    static void println(const std::string& text, const char* color = colors::RESET);
+    
+    // Print with prefix icons
+    static void info(const std::string& text);
+    static void success(const std::string& text);
+    static void warning(const std::string& text);
+    static void error(const std::string& text);
+    static void debug(const std::string& text);
+    
+    // Boxes and panels
+    static void box(const std::string& title, const std::string& content);
+    static void panel(const std::string& text, const char* borderColor = colors::CYAN);
+    static void divider(const char* color = colors::DIM);
+    
+    // Progress indicators
+    static void spinner(const std::string& text);
+    static void progress(int current, int total, const std::string& label = "");
+    
+    // Tables
+    static void table(const std::vector<std::vector<std::string>>& data, 
+                      const std::vector<std::string>& headers = {});
+    
+    // Input
+    static std::string prompt(const std::string& message);
+    static bool confirm(const std::string& message);
+    
+    // Clear screen
+    static void clear();
+    
+    // Banner
+    static void banner();
+    
+    // Enable Windows ANSI
+    static void enableAnsi();
 };
 
-/**
- * CLI Parser and Handler
- */
+// ============================================================================
+// COMMAND STRUCTURE
+// ============================================================================
+
+struct CommandContext {
+    std::vector<std::string> args;
+    std::map<std::string, std::string> options;
+    bool verbose = false;
+    bool dryRun = false;
+};
+
+using CommandHandler = std::function<void(const CommandContext&)>;
+
+struct Command {
+    std::string name;
+    std::string alias;
+    std::string description;
+    std::string usage;
+    CommandHandler handler;
+};
+
+// ============================================================================
+// INTERACTIVE CLI
+// ============================================================================
+
 class CLI {
 public:
     CLI();
-    ~CLI() = default;
+    ~CLI();
     
     /**
-     * Parse command line arguments
+     * Run in interactive mode (Claude-style REPL)
      */
-    Command parse(int argc, char* argv[]);
+    void runInteractive();
     
     /**
-     * Print help message
+     * Run single command from arguments
      */
-    void printHelp() const;
+    int runCommand(int argc, char* argv[]);
     
     /**
-     * Print version info
+     * Register a command
      */
-    void printVersion() const;
+    void registerCommand(const Command& cmd);
     
     /**
-     * Validate command
+     * Process a single input line
      */
-    bool validateCommand(const Command& cmd) const;
+    bool processInput(const std::string& input);
 
 private:
-    std::string programName_;
-    std::string version_;
+    std::map<std::string, Command> commands_;
+    std::map<std::string, std::string> aliases_;
+    std::vector<std::string> history_;
+    bool running_;
+    std::string currentSession_;
     
-    void parseOptions(Command& cmd, const std::vector<std::string>& args);
+    void registerBuiltinCommands();
+    void showHelp(const CommandContext& ctx);
+    void showWelcome();
+    void printPrompt();
+    std::string readLine();
+    CommandContext parseInput(const std::string& input);
+    
+    // Built-in command handlers
+    void cmdRun(const CommandContext& ctx);
+    void cmdList(const CommandContext& ctx);
+    void cmdStatus(const CommandContext& ctx);
+    void cmdCampaign(const CommandContext& ctx);
+    void cmdSnapshot(const CommandContext& ctx);
+    void cmdClean(const CommandContext& ctx);
+    void cmdConfig(const CommandContext& ctx);
+    void cmdHistory(const CommandContext& ctx);
+    void cmdClear(const CommandContext& ctx);
+    void cmdExit(const CommandContext& ctx);
 };
 
 } // namespace cli

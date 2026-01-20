@@ -166,6 +166,15 @@ private:
     std::string readLine();
     CommandContext parseInput(const std::string& input);
     
+    // Menu handlers
+    void showMainMenu();
+    void showTechniqueMenu();
+    void showSnapshotMenu();
+    void handleMainMenuChoice(int choice);
+    void handleTechniqueMenu();
+    void handleCampaignMenu();
+    void handleSnapshotMenu();
+    
     // Built-in command handlers
     void cmdRun(const CommandContext& ctx);
     void cmdList(const CommandContext& ctx);

@@ -3,7 +3,7 @@
  * ==================================
  * Author: Jdeep
  * 
- * Claude-style interactive terminal with colors and slash commands.
+ * Menu-based interactive terminal with numbered options.
  * ASCII-compatible version for MinGW.
  */
 
@@ -14,7 +14,7 @@
 #include <chrono>
 #include <iomanip>
 #include <ctime>
-#include <tuple>
+#include <cstdlib>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -241,93 +241,18 @@ CLI::CLI() : running_(false) {
 CLI::~CLI() = default;
 
 void CLI::registerBuiltinCommands() {
-    // /help or /h
-    registerCommand({
-        "help", "h", 
-        "Show available commands",
-        "/help [command]",
-        [this](const CommandContext& ctx) { showHelp(ctx); }
-    });
-    
-    // /run or /r
-    registerCommand({
-        "run", "r",
-        "Execute a MITRE ATT&CK technique",
-        "/run <technique_id> [--target <process>] [--verbose]",
-        [this](const CommandContext& ctx) { cmdRun(ctx); }
-    });
-    
-    // /list or /ls
-    registerCommand({
-        "list", "ls",
-        "List available techniques",
-        "/list [--tactic <tactic>]",
-        [this](const CommandContext& ctx) { cmdList(ctx); }
-    });
-    
-    // /status or /st
-    registerCommand({
-        "status", "st",
-        "Show EDR and system status",
-        "/status",
-        [this](const CommandContext& ctx) { cmdStatus(ctx); }
-    });
-    
-    // /campaign or /c
-    registerCommand({
-        "campaign", "c",
-        "Run attack campaign from file",
-        "/campaign <file.yaml>",
-        [this](const CommandContext& ctx) { cmdCampaign(ctx); }
-    });
-    
-    // /snapshot or /snap
-    registerCommand({
-        "snapshot", "snap",
-        "Manage VM snapshots",
-        "/snapshot [create|restore|list] [name]",
-        [this](const CommandContext& ctx) { cmdSnapshot(ctx); }
-    });
-    
-    // /clean
-    registerCommand({
-        "clean", "",
-        "Cleanup artifacts",
-        "/clean [--all]",
-        [this](const CommandContext& ctx) { cmdClean(ctx); }
-    });
-    
-    // /config or /cfg
-    registerCommand({
-        "config", "cfg",
-        "View or modify configuration",
-        "/config [key] [value]",
-        [this](const CommandContext& ctx) { cmdConfig(ctx); }
-    });
-    
-    // /history
-    registerCommand({
-        "history", "",
-        "Show command history",
-        "/history",
-        [this](const CommandContext& ctx) { cmdHistory(ctx); }
-    });
-    
-    // /clear or /cls
-    registerCommand({
-        "clear", "cls",
-        "Clear the screen",
-        "/clear",
-        [this](const CommandContext& ctx) { cmdClear(ctx); }
-    });
-    
-    // /exit or /quit or /q
-    registerCommand({
-        "exit", "q",
-        "Exit the framework",
-        "/exit",
-        [this](const CommandContext& ctx) { cmdExit(ctx); }
-    });
+    // Commands are registered for internal use
+    registerCommand({"help", "h", "Show help", "/help", [this](const CommandContext& ctx) { showHelp(ctx); }});
+    registerCommand({"run", "r", "Run technique", "/run", [this](const CommandContext& ctx) { cmdRun(ctx); }});
+    registerCommand({"list", "ls", "List techniques", "/list", [this](const CommandContext& ctx) { cmdList(ctx); }});
+    registerCommand({"status", "st", "Show status", "/status", [this](const CommandContext& ctx) { cmdStatus(ctx); }});
+    registerCommand({"campaign", "c", "Run campaign", "/campaign", [this](const CommandContext& ctx) { cmdCampaign(ctx); }});
+    registerCommand({"snapshot", "snap", "Manage snapshots", "/snapshot", [this](const CommandContext& ctx) { cmdSnapshot(ctx); }});
+    registerCommand({"clean", "", "Cleanup", "/clean", [this](const CommandContext& ctx) { cmdClean(ctx); }});
+    registerCommand({"config", "cfg", "Configuration", "/config", [this](const CommandContext& ctx) { cmdConfig(ctx); }});
+    registerCommand({"history", "", "History", "/history", [this](const CommandContext& ctx) { cmdHistory(ctx); }});
+    registerCommand({"clear", "cls", "Clear screen", "/clear", [this](const CommandContext& ctx) { cmdClear(ctx); }});
+    registerCommand({"exit", "q", "Exit", "/exit", [this](const CommandContext& ctx) { cmdExit(ctx); }});
     aliases_["quit"] = "exit";
 }
 
@@ -338,75 +263,77 @@ void CLI::registerCommand(const Command& cmd) {
     }
 }
 
+void CLI::showMainMenu() {
+    std::cout << std::endl;
+    std::cout << colors::BOLD << colors::BRIGHT_CYAN << "  ========== MAIN MENU ==========" << colors::RESET << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << colors::BRIGHT_GREEN << "  [1]" << colors::RESET << " Run Attack Technique" << std::endl;
+    std::cout << colors::BRIGHT_GREEN << "  [2]" << colors::RESET << " List Available Techniques" << std::endl;
+    std::cout << colors::BRIGHT_GREEN << "  [3]" << colors::RESET << " Run Attack Campaign" << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << colors::BRIGHT_YELLOW << "  [4]" << colors::RESET << " System & EDR Status" << std::endl;
+    std::cout << colors::BRIGHT_YELLOW << "  [5]" << colors::RESET << " Manage Snapshots" << std::endl;
+    std::cout << colors::BRIGHT_YELLOW << "  [6]" << colors::RESET << " Clean Artifacts" << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << colors::BRIGHT_MAGENTA << "  [7]" << colors::RESET << " View Configuration" << std::endl;
+    std::cout << colors::BRIGHT_MAGENTA << "  [8]" << colors::RESET << " Command History" << std::endl;
+    std::cout << colors::BRIGHT_MAGENTA << "  [9]" << colors::RESET << " Clear Screen" << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << colors::BRIGHT_RED << "  [0]" << colors::RESET << " Exit" << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << colors::BOLD << colors::BRIGHT_CYAN << "  ================================" << colors::RESET << std::endl;
+    std::cout << std::endl;
+}
+
+void CLI::showTechniqueMenu() {
+    std::cout << std::endl;
+    std::cout << colors::BOLD << colors::BRIGHT_CYAN << "  ===== SELECT TECHNIQUE =====" << colors::RESET << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << colors::BRIGHT_GREEN << "  [1]" << colors::RESET << " T1055     - Process Injection" << std::endl;
+    std::cout << colors::BRIGHT_GREEN << "  [2]" << colors::RESET << " T1055.012 - Process Hollowing" << std::endl;
+    std::cout << colors::BRIGHT_GREEN << "  [3]" << colors::RESET << " T1218.002 - Control Panel (CPL)" << std::endl;
+    std::cout << colors::BRIGHT_GREEN << "  [4]" << colors::RESET << " T1218.005 - Mshta (HTA)" << std::endl;
+    std::cout << colors::BRIGHT_GREEN << "  [5]" << colors::RESET << " T1574.002 - DLL Side-Loading" << std::endl;
+    std::cout << colors::BRIGHT_GREEN << "  [6]" << colors::RESET << " T1106     - Direct Syscalls" << std::endl;
+    std::cout << colors::BRIGHT_GREEN << "  [7]" << colors::RESET << " T1562.001 - EDR Redirection" << std::endl;
+    std::cout << std::endl;
+    std::cout << colors::BRIGHT_YELLOW << "  [8]" << colors::RESET << " Run ALL techniques" << std::endl;
+    std::cout << colors::BRIGHT_RED << "  [0]" << colors::RESET << " Back to Main Menu" << std::endl;
+    std::cout << std::endl;
+}
+
+void CLI::showSnapshotMenu() {
+    std::cout << std::endl;
+    std::cout << colors::BOLD << colors::BRIGHT_CYAN << "  ===== SNAPSHOT MANAGER =====" << colors::RESET << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << colors::BRIGHT_GREEN << "  [1]" << colors::RESET << " Create Snapshot" << std::endl;
+    std::cout << colors::BRIGHT_GREEN << "  [2]" << colors::RESET << " Restore Snapshot" << std::endl;
+    std::cout << colors::BRIGHT_GREEN << "  [3]" << colors::RESET << " List Snapshots" << std::endl;
+    std::cout << colors::BRIGHT_GREEN << "  [4]" << colors::RESET << " Delete Snapshot" << std::endl;
+    std::cout << std::endl;
+    std::cout << colors::BRIGHT_RED << "  [0]" << colors::RESET << " Back to Main Menu" << std::endl;
+    std::cout << std::endl;
+}
+
 void CLI::showWelcome() {
     UI::banner();
     UI::divider(colors::CYAN);
     std::cout << std::endl;
     
     std::cout << colors::BRIGHT_GREEN << "  Welcome to EDR Framework!" << colors::RESET << std::endl;
-    std::cout << colors::DIM << "  Type " << colors::RESET 
-              << colors::CYAN << "/help" << colors::RESET 
-              << colors::DIM << " to see available commands" << colors::RESET << std::endl;
-    std::cout << colors::DIM << "  Type " << colors::RESET
-              << colors::CYAN << "/exit" << colors::RESET
-              << colors::DIM << " to quit" << colors::RESET << std::endl;
-    std::cout << std::endl;
-    UI::divider(colors::DIM);
+    std::cout << colors::DIM << "  Select an option by entering its number" << colors::RESET << std::endl;
     std::cout << std::endl;
 }
 
 void CLI::showHelp(const CommandContext& ctx) {
-    if (!ctx.args.empty()) {
-        // Show help for specific command
-        std::string cmdName = ctx.args[0];
-        if (aliases_.count(cmdName)) cmdName = aliases_[cmdName];
-        
-        if (commands_.count(cmdName)) {
-            Command& cmd = commands_[cmdName];
-            std::cout << std::endl;
-            std::cout << colors::BOLD << "  /" << cmd.name << colors::RESET;
-            if (!cmd.alias.empty()) {
-                std::cout << colors::DIM << " (/" << cmd.alias << ")" << colors::RESET;
-            }
-            std::cout << std::endl;
-            std::cout << "  " << cmd.description << std::endl;
-            std::cout << std::endl;
-            std::cout << colors::DIM << "  Usage: " << colors::RESET << cmd.usage << std::endl;
-            std::cout << std::endl;
-        } else {
-            UI::error("Unknown command: " + cmdName);
-        }
-        return;
-    }
-    
-    // Show all commands
-    std::cout << std::endl;
-    std::cout << colors::BOLD << "  Available Commands" << colors::RESET << std::endl;
-    std::cout << std::endl;
-    
-    // Use simple approach instead of structured bindings
-    std::cout << colors::CYAN << "  Testing" << colors::RESET << std::endl;
-    std::cout << "    " << colors::BRIGHT_CYAN << "/run, /list, /campaign" << colors::RESET 
-              << colors::DIM << " - Execute and manage attack techniques" << colors::RESET << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << colors::CYAN << "  System" << colors::RESET << std::endl;
-    std::cout << "    " << colors::BRIGHT_CYAN << "/status, /snapshot, /clean" << colors::RESET 
-              << colors::DIM << " - System and EDR operations" << colors::RESET << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << colors::CYAN << "  Config" << colors::RESET << std::endl;
-    std::cout << "    " << colors::BRIGHT_CYAN << "/config, /history" << colors::RESET 
-              << colors::DIM << " - Configuration and history" << colors::RESET << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << colors::CYAN << "  General" << colors::RESET << std::endl;
-    std::cout << "    " << colors::BRIGHT_CYAN << "/help, /clear, /exit" << colors::RESET 
-              << colors::DIM << " - General commands" << colors::RESET << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << colors::DIM << "  Type /help <command> for detailed help" << colors::RESET << std::endl;
-    std::cout << std::endl;
+    showMainMenu();
 }
 
 void CLI::printPrompt() {
@@ -428,31 +355,8 @@ CommandContext CLI::parseInput(const std::string& input) {
     std::string token;
     
     while (stream >> token) {
-        if (token.substr(0, 2) == "--") {
-            // Long option
-            std::string key = token.substr(2);
-            std::string val;
-            if (stream >> val && val[0] != '-') {
-                ctx.options[key] = val;
-            } else {
-                ctx.options[key] = "true";
-            }
-        } else if (token[0] == '-' && token.length() == 2) {
-            // Short option
-            std::string key(1, token[1]);
-            std::string val;
-            if (stream >> val && val[0] != '-') {
-                ctx.options[key] = val;
-            } else {
-                ctx.options[key] = "true";
-            }
-        } else {
-            ctx.args.push_back(token);
-        }
+        ctx.args.push_back(token);
     }
-    
-    ctx.verbose = ctx.options.count("verbose") || ctx.options.count("v");
-    ctx.dryRun = ctx.options.count("dry-run");
     
     return ctx;
 }
@@ -469,7 +373,14 @@ bool CLI::processInput(const std::string& input) {
     // Add to history
     history_.push_back(trimmed);
     
-    // Check if it's a slash command
+    // Check for number input
+    if (trimmed.length() == 1 && trimmed[0] >= '0' && trimmed[0] <= '9') {
+        int choice = trimmed[0] - '0';
+        handleMainMenuChoice(choice);
+        return true;
+    }
+    
+    // Check if it's a slash command (legacy support)
     if (trimmed[0] == '/') {
         std::string cmdLine = trimmed.substr(1);
         CommandContext ctx = parseInput(cmdLine);
@@ -479,7 +390,6 @@ bool CLI::processInput(const std::string& input) {
         std::string cmdName = ctx.args[0];
         ctx.args.erase(ctx.args.begin());
         
-        // Check aliases
         if (aliases_.count(cmdName)) {
             cmdName = aliases_[cmdName];
         }
@@ -488,23 +398,192 @@ bool CLI::processInput(const std::string& input) {
             commands_[cmdName].handler(ctx);
         } else {
             UI::error("Unknown command: /" + cmdName);
-            std::cout << colors::DIM << "  Type /help for available commands" 
-                      << colors::RESET << std::endl;
         }
     } else {
-        // Treat as a technique ID for quick run
-        UI::info("Running technique: " + trimmed);
-        CommandContext ctx;
-        ctx.args.push_back(trimmed);
-        cmdRun(ctx);
+        UI::warning("Invalid input. Enter a number (0-9) or use /help");
     }
     
     return true;
 }
 
+void CLI::handleMainMenuChoice(int choice) {
+    CommandContext ctx;
+    
+    switch (choice) {
+        case 1: // Run Attack Technique
+            handleTechniqueMenu();
+            break;
+            
+        case 2: // List Techniques
+            cmdList(ctx);
+            break;
+            
+        case 3: // Run Campaign
+            handleCampaignMenu();
+            break;
+            
+        case 4: // Status
+            cmdStatus(ctx);
+            break;
+            
+        case 5: // Snapshots
+            handleSnapshotMenu();
+            break;
+            
+        case 6: // Clean
+            cmdClean(ctx);
+            break;
+            
+        case 7: // Config
+            cmdConfig(ctx);
+            break;
+            
+        case 8: // History
+            cmdHistory(ctx);
+            break;
+            
+        case 9: // Clear
+            cmdClear(ctx);
+            break;
+            
+        case 0: // Exit
+            cmdExit(ctx);
+            break;
+            
+        default:
+            UI::error("Invalid choice");
+            break;
+    }
+}
+
+void CLI::handleTechniqueMenu() {
+    showTechniqueMenu();
+    
+    std::cout << colors::BRIGHT_YELLOW << "  Enter choice: " << colors::RESET;
+    std::string input = readLine();
+    
+    if (input.empty() || input[0] == '0') return;
+    
+    std::string techniqueId;
+    int choice = std::atoi(input.c_str());
+    
+    switch (choice) {
+        case 1: techniqueId = "T1055"; break;
+        case 2: techniqueId = "T1055.012"; break;
+        case 3: techniqueId = "T1218.002"; break;
+        case 4: techniqueId = "T1218.005"; break;
+        case 5: techniqueId = "T1574.002"; break;
+        case 6: techniqueId = "T1106"; break;
+        case 7: techniqueId = "T1562.001"; break;
+        case 8: 
+            // Run all
+            UI::info("Running all techniques sequentially...");
+            {
+                std::vector<std::string> allTechniques = {
+                    "T1055", "T1055.012", "T1218.002", "T1218.005", 
+                    "T1574.002", "T1106", "T1562.001"
+                };
+                for (const auto& t : allTechniques) {
+                    CommandContext ctx;
+                    ctx.args.push_back(t);
+                    cmdRun(ctx);
+                    SLEEP_MS(500);
+                }
+            }
+            return;
+        default:
+            UI::error("Invalid technique selection");
+            return;
+    }
+    
+    CommandContext ctx;
+    ctx.args.push_back(techniqueId);
+    cmdRun(ctx);
+}
+
+void CLI::handleCampaignMenu() {
+    std::cout << std::endl;
+    std::cout << colors::BOLD << colors::BRIGHT_CYAN << "  ===== ATTACK CAMPAIGNS =====" << colors::RESET << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << colors::BRIGHT_GREEN << "  [1]" << colors::RESET << " APT29 (Cozy Bear) Campaign" << std::endl;
+    std::cout << colors::BRIGHT_GREEN << "  [2]" << colors::RESET << " APT28 (Fancy Bear) Campaign" << std::endl;
+    std::cout << colors::BRIGHT_GREEN << "  [3]" << colors::RESET << " FIN7 Campaign" << std::endl;
+    std::cout << colors::BRIGHT_GREEN << "  [4]" << colors::RESET << " Custom Campaign (from file)" << std::endl;
+    std::cout << std::endl;
+    std::cout << colors::BRIGHT_RED << "  [0]" << colors::RESET << " Back to Main Menu" << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << colors::BRIGHT_YELLOW << "  Enter choice: " << colors::RESET;
+    std::string input = readLine();
+    
+    if (input.empty() || input[0] == '0') return;
+    
+    int choice = std::atoi(input.c_str());
+    std::string campaignName;
+    
+    switch (choice) {
+        case 1: campaignName = "apt29_cozy_bear.yaml"; break;
+        case 2: campaignName = "apt28_fancy_bear.yaml"; break;
+        case 3: campaignName = "fin7.yaml"; break;
+        case 4:
+            campaignName = UI::prompt("Enter campaign file path:");
+            break;
+        default:
+            UI::error("Invalid campaign selection");
+            return;
+    }
+    
+    CommandContext ctx;
+    ctx.args.push_back(campaignName);
+    cmdCampaign(ctx);
+}
+
+void CLI::handleSnapshotMenu() {
+    showSnapshotMenu();
+    
+    std::cout << colors::BRIGHT_YELLOW << "  Enter choice: " << colors::RESET;
+    std::string input = readLine();
+    
+    if (input.empty() || input[0] == '0') return;
+    
+    int choice = std::atoi(input.c_str());
+    CommandContext ctx;
+    
+    switch (choice) {
+        case 1: {
+            std::string name = UI::prompt("Enter snapshot name:");
+            ctx.args.push_back("create");
+            ctx.args.push_back(name.empty() ? "snapshot_" + currentSession_ : name);
+            cmdSnapshot(ctx);
+            break;
+        }
+        case 2: {
+            std::string name = UI::prompt("Enter snapshot name to restore:");
+            ctx.args.push_back("restore");
+            ctx.args.push_back(name);
+            cmdSnapshot(ctx);
+            break;
+        }
+        case 3:
+            ctx.args.push_back("list");
+            cmdSnapshot(ctx);
+            break;
+        case 4: {
+            std::string name = UI::prompt("Enter snapshot name to delete:");
+            UI::warning("Delete snapshot: " + name + " (placeholder)");
+            break;
+        }
+        default:
+            UI::error("Invalid choice");
+            break;
+    }
+}
+
 void CLI::runInteractive() {
     running_ = true;
     showWelcome();
+    showMainMenu();
     
     while (running_) {
         printPrompt();
@@ -516,6 +595,11 @@ void CLI::runInteractive() {
         }
         
         processInput(input);
+        
+        // Show menu again after each action
+        if (running_) {
+            showMainMenu();
+        }
     }
     
     std::cout << std::endl;
@@ -533,7 +617,7 @@ int CLI::runCommand(int argc, char* argv[]) {
     std::string arg = argv[1];
     if (arg == "--help" || arg == "-h") {
         UI::banner();
-        showHelp(CommandContext());
+        showMainMenu();
         return 0;
     }
     
@@ -566,8 +650,7 @@ int CLI::runCommand(int argc, char* argv[]) {
 
 void CLI::cmdRun(const CommandContext& ctx) {
     if (ctx.args.empty()) {
-        UI::error("No technique specified");
-        std::cout << colors::DIM << "  Usage: /run <technique_id>" << colors::RESET << std::endl;
+        handleTechniqueMenu();
         return;
     }
     
@@ -609,15 +692,15 @@ void CLI::cmdRun(const CommandContext& ctx) {
 void CLI::cmdList(const CommandContext& ctx) {
     std::cout << std::endl;
     
-    std::vector<std::string> headers = {"ID", "Name", "Tactic", "Owner"};
+    std::vector<std::string> headers = {"#", "ID", "Name", "Tactic", "Owner"};
     std::vector<std::vector<std::string>> data = {
-        {"T1055", "Process Injection", "Defense Evasion", "Bipin"},
-        {"T1055.012", "Process Hollowing", "Defense Evasion", "Bipin"},
-        {"T1218.002", "Control Panel", "Defense Evasion", "Bipin"},
-        {"T1218.005", "Mshta", "Defense Evasion", "Bipin"},
-        {"T1574.002", "DLL Side-Loading", "Persistence", "Bipin"},
-        {"T1106", "Direct Syscalls", "Execution", "Bipin"},
-        {"T1562.001", "EDR Redirection", "Defense Evasion", "Bipin"},
+        {"1", "T1055", "Process Injection", "Defense Evasion", "Bipin"},
+        {"2", "T1055.012", "Process Hollowing", "Defense Evasion", "Bipin"},
+        {"3", "T1218.002", "Control Panel", "Defense Evasion", "Bipin"},
+        {"4", "T1218.005", "Mshta", "Defense Evasion", "Bipin"},
+        {"5", "T1574.002", "DLL Side-Loading", "Persistence", "Bipin"},
+        {"6", "T1106", "Direct Syscalls", "Execution", "Bipin"},
+        {"7", "T1562.001", "EDR Redirection", "Defense Evasion", "Bipin"},
     };
     
     UI::info("Available Techniques (Awaiting Implementation)");
@@ -652,8 +735,7 @@ void CLI::cmdStatus(const CommandContext& ctx) {
 
 void CLI::cmdCampaign(const CommandContext& ctx) {
     if (ctx.args.empty()) {
-        UI::error("No campaign file specified");
-        std::cout << colors::DIM << "  Usage: /campaign <file.yaml>" << colors::RESET << std::endl;
+        handleCampaignMenu();
         return;
     }
     
@@ -664,7 +746,12 @@ void CLI::cmdCampaign(const CommandContext& ctx) {
 }
 
 void CLI::cmdSnapshot(const CommandContext& ctx) {
-    std::string action = ctx.args.empty() ? "list" : ctx.args[0];
+    if (ctx.args.empty()) {
+        handleSnapshotMenu();
+        return;
+    }
+    
+    std::string action = ctx.args[0];
     
     std::cout << std::endl;
     
@@ -692,16 +779,30 @@ void CLI::cmdSnapshot(const CommandContext& ctx) {
 void CLI::cmdClean(const CommandContext& ctx) {
     std::cout << std::endl;
     
-    if (ctx.options.count("all")) {
-        if (UI::confirm("Remove ALL artifacts and restore system?")) {
-            UI::info("Performing deep clean...");
-            SLEEP_MS(500);
-            UI::success("All artifacts cleaned");
-        }
-    } else {
+    std::cout << colors::BOLD << colors::BRIGHT_CYAN << "  ===== CLEANUP OPTIONS =====" << colors::RESET << std::endl;
+    std::cout << std::endl;
+    std::cout << colors::BRIGHT_GREEN << "  [1]" << colors::RESET << " Clean session artifacts only" << std::endl;
+    std::cout << colors::BRIGHT_YELLOW << "  [2]" << colors::RESET << " Deep clean (restore from snapshot)" << std::endl;
+    std::cout << colors::BRIGHT_RED << "  [0]" << colors::RESET << " Cancel" << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << colors::BRIGHT_YELLOW << "  Enter choice: " << colors::RESET;
+    std::string input = readLine();
+    
+    if (input.empty() || input[0] == '0') return;
+    
+    int choice = std::atoi(input.c_str());
+    
+    if (choice == 1) {
         UI::info("Cleaning session artifacts...");
         SLEEP_MS(300);
         UI::success("Session cleaned");
+    } else if (choice == 2) {
+        if (UI::confirm("This will restore from last snapshot. Continue?")) {
+            UI::info("Performing deep clean...");
+            SLEEP_MS(500);
+            UI::success("System restored from snapshot");
+        }
     }
     
     std::cout << std::endl;
@@ -709,27 +810,18 @@ void CLI::cmdClean(const CommandContext& ctx) {
 
 void CLI::cmdConfig(const CommandContext& ctx) {
     std::cout << std::endl;
+    UI::info("Current Configuration");
+    std::cout << std::endl;
     
-    if (ctx.args.empty()) {
-        UI::info("Current Configuration");
-        std::cout << std::endl;
-        
-        std::vector<std::string> headers = {"Key", "Value"};
-        std::vector<std::vector<std::string>> data = {
-            {"debug", "false"},
-            {"log_level", "INFO"},
-            {"output_dir", "results"},
-            {"auto_cleanup", "true"},
-            {"snapshot_provider", "auto"},
-        };
-        UI::table(data, headers);
-    } else {
-        UI::info("Config key: " + ctx.args[0]);
-        if (ctx.args.size() > 1) {
-            UI::success("Set " + ctx.args[0] + " = " + ctx.args[1]);
-        }
-    }
-    
+    std::vector<std::string> headers = {"Key", "Value"};
+    std::vector<std::vector<std::string>> data = {
+        {"debug", "false"},
+        {"log_level", "INFO"},
+        {"output_dir", "results"},
+        {"auto_cleanup", "true"},
+        {"snapshot_provider", "auto"},
+    };
+    UI::table(data, headers);
     std::cout << std::endl;
 }
 

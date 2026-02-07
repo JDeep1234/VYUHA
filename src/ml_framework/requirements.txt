@@ -1,0 +1,30 @@
+# ML Framework Dependencies
+# Author: Karthik
+# Python 3.8+ required
+
+# Deep Learning
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Data Science
+numpy>=1.24.0
+pandas>=2.0.0
+scipy>=1.10.0
+
+# Machine Learning
+scikit-learn>=1.3.0
+
+# Explainable AI
+shap>=0.42.0
+lime>=0.2.0.1
+
+# Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# C++ Integration
+pybind11>=2.11.0
+
+# Utilities
+tqdm>=4.65.0
+pyyaml>=6.0

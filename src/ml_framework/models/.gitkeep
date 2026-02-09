@@ -1,0 +1,2 @@
+# This folder contains trained RL models
+# Files will be created during training (e.g., dqn_defender.pth)

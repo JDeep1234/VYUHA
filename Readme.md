@@ -204,9 +204,12 @@ public:
 **Location:** `src/ml_framework/`
 
 **Components to Implement:**
-- `DetectionAnalyzer`: Pattern recognition, ML detection
-- `EvasionScorer`: Success rate calculation
-- `EventCorrelator`: MITRE ATT&CK mapping
+- `StrategySelector`: RL-based attack technique selection engine (DQN/PPO)
+- `BehaviorAnalyzer`: EDR response pattern recognition and clustering
+- `ExplainableAI`: SHAP/LIME-based failure analysis and feature importance
+- `AdaptiveLearner`: Online learning, transfer learning, and failure pattern analysis
+
+**See detailed design:** [`src/ml_framework/DESIGN.md`](src/ml_framework/DESIGN.md)
 
 **How to Add ML Model:**
 ```cpp

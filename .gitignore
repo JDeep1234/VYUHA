@@ -1,0 +1,9 @@
+# BYOVD drivers
+*.sys
+
+# initialization + testing scripts
+*.sh
+*.bat
+
+# context files for agent 
+*.md 

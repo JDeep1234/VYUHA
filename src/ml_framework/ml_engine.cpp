@@ -12,6 +12,7 @@
 #include "ml_framework/ml_engine.hpp"
 #include <iostream>
 #include <chrono>
+#include <algorithm>
 #include <sstream>
 #include <iomanip>
 

@@ -17,6 +17,7 @@
 #include <cstdlib>
 
 #ifdef _WIN32
+#define NOMINMAX
 #include <windows.h>
 #include <tlhelp32.h>
 #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
@@ -76,7 +77,10 @@ std::vector<std::string> getRunningProcesses() {
     
     if (Process32First(hSnapshot, &pe32)) {
         do {
-            std::string procName(pe32.szExeFile);
+            // Convert WCHAR to std::string
+            char procNameBuf[260];
+            WideCharToMultiByte(CP_UTF8, 0, pe32.szExeFile, -1, procNameBuf, sizeof(procNameBuf), NULL, NULL);
+            std::string procName(procNameBuf);
             std::transform(procName.begin(), procName.end(), procName.begin(), ::tolower);
             processes.push_back(procName);
         } while (Process32Next(hSnapshot, &pe32));
@@ -102,7 +106,7 @@ std::pair<std::string, std::string> detectWindowsDefender() {
     SC_HANDLE scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
     if (!scm) return {"Unknown", "Cannot query services"};
     
-    SC_HANDLE service = OpenService(scm, "WinDefend", SERVICE_QUERY_STATUS);
+    SC_HANDLE service = OpenService(scm, L"WinDefend", SERVICE_QUERY_STATUS);
     if (!service) {
         CloseServiceHandle(scm);
         return {"Not Installed", "-"};

@@ -13,6 +13,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 if(WIN32)
     add_definitions(-D_WIN32_WINNT=0x0A00)  # Windows 10
     add_definitions(-DUNICODE -D_UNICODE)
+    add_definitions(-DNOMINMAX)  # Prevent min/max macro conflicts
 endif()
 
 # Output directories

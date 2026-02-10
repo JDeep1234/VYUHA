@@ -56,7 +56,8 @@ cd build
 REM Configure with CMake
 echo.
 echo [*] Configuring CMake...
-cmake .. -G "Visual Studio 17 2022" -A x64
+echo [*] Auto-detecting Visual Studio version...
+cmake .. -A x64
 if %errorLevel% neq 0 (
     echo [!] CMake configuration failed
     pause

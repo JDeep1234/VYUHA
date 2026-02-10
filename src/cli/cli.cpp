@@ -592,8 +592,9 @@ void CLI::showTechniqueMenu() {
     std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_GREEN << "  [5]" << colors::RESET << " exploit/persistence/dll_side  " << colors::DIM << "T1574.002    " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
     std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_GREEN << "  [6]" << colors::RESET << " exploit/evasion/syscalls      " << colors::DIM << "T1106        " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
     std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_GREEN << "  [7]" << colors::RESET << " exploit/evasion/edr_redir     " << colors::DIM << "T1562.001    " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_GREEN << "  [8]" << colors::RESET << " exploit/privesc/byovd         " << colors::DIM << "T1068        " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
     std::cout << colors::BRIGHT_RED << "  +" << std::string(61, '-') << "+" << colors::RESET << std::endl;
-    std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_YELLOW << "  [8]" << colors::RESET << " run ALL " << colors::DIM << "                     (chained)    " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_YELLOW << "  [9]" << colors::RESET << " run ALL " << colors::DIM << "                     (chained)    " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
     std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_RED << "  [0]" << colors::RESET << " back" << colors::DIM << "                                       " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
     std::cout << colors::BRIGHT_RED << "  +" << std::string(61, '-') << "+" << colors::RESET << std::endl;
     std::cout << std::endl;
@@ -762,13 +763,14 @@ void CLI::handleTechniqueMenu() {
         case 5: techniqueId = "T1574.002"; break;
         case 6: techniqueId = "T1106"; break;
         case 7: techniqueId = "T1562.001"; break;
-        case 8: 
+        case 8: techniqueId = "T1068"; break;
+        case 9: 
             // Run all
             UI::info("Running all techniques sequentially...");
             {
                 std::vector<std::string> allTechniques = {
                     "T1055", "T1055.012", "T1218.002", "T1218.005", 
-                    "T1574.002", "T1106", "T1562.001"
+                    "T1574.002", "T1106", "T1562.001", "T1068"
                 };
                 for (const auto& t : allTechniques) {
                     CommandContext ctx;

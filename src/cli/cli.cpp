@@ -924,6 +924,49 @@ void CLI::cmdRun(const CommandContext& ctx) {
     UI::box("Executing Technique", techniqueId);
     std::cout << std::endl;
     
+    // BYOVD-specific interactive configuration
+    std::map<std::string, std::string> options;
+    
+    if (techniqueId == "T1068") {
+        // Prompt for driver path
+        std::string defaultPath = "C:\\\\EDR-Test\\\\vulndriver.sys";
+        std::cout << colors::BRIGHT_CYAN << "[?] Driver Path" << colors::RESET << std::endl;
+        std::cout << "    Default: " << colors::DIM << defaultPath << colors::RESET << std::endl;
+        std::cout << "    Enter path (or press ENTER for default): ";
+        
+        std::string driverPath = readLine();
+        if (driverPath.empty()) {
+            driverPath = defaultPath;
+        }
+        options["driver_path"] = driverPath;
+        
+        std::cout << std::endl;
+        std::cout << colors::BRIGHT_CYAN << "[*] Scanning for EDR processes..." << colors::RESET << std::endl;
+        std::cout << std::endl;
+        
+        // Show detected EDR processes (this will be done by the exploit itself)
+        std::cout << colors::BRIGHT_YELLOW << "[i] Target Selection:" << colors::RESET << std::endl;
+        std::cout << "    1. Auto-detect and show EDR processes" << std::endl;
+        std::cout << "    2. Manual PID entry" << std::endl;
+        std::cout << "    3. Skip termination (load driver only)" << std::endl;
+        std::cout << std::endl;
+        std::cout << "    Choice: ";
+        
+        std::string choice = readLine();
+        if (choice == "1") {
+            options["mode"] = "auto_detect";
+        } else if (choice == "2") {
+            std::cout << "    Enter target PID: ";
+            std::string pidStr = readLine();
+            options["target_pid"] = pidStr;
+            options["mode"] = "manual";
+        } else {
+            options["mode"] = "load_only";
+        }
+        
+        std::cout << std::endl;
+    }
+    
     // Prepare execution
     UI::info("Preparing environment...");
     SLEEP_MS(500);
@@ -941,13 +984,6 @@ void CLI::cmdRun(const CommandContext& ctx) {
     std::cout << std::endl;
     
     // ACTUAL EXPLOIT EXECUTION
-    std::map<std::string, std::string> options;
-    
-    // For BYOVD, set default driver path
-    if (techniqueId == "T1068") {
-        options["driver_path"] = "C:\\\\EDR-Test\\\\vulndriver.sys";
-    }
-    
     edr::exploits::ExploitResult result = exploitManager_->execute(techniqueId, options);
     
     std::cout << std::endl;

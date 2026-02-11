@@ -8,6 +8,7 @@
  */
 
 #include "cli/cli.hpp"
+#include "exploits/exploit_manager.hpp"
 #include <iostream>
 #include <sstream>
 #include <algorithm>
@@ -518,7 +519,7 @@ void UI::banner() {
 // CLI IMPLEMENTATION
 // ============================================================================
 
-CLI::CLI() : running_(false) {
+CLI::CLI() : running_(false), exploitManager_(std::make_shared<edr::exploits::ExploitManager>()) {
     UI::enableAnsi();
     registerBuiltinCommands();
     
@@ -585,16 +586,10 @@ void CLI::showTechniqueMenu() {
     std::cout << colors::BRIGHT_RED << "  +" << std::string(61, '-') << "+" << colors::RESET << std::endl;
     std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BOLD << "               AVAILABLE EXPLOIT MODULES                    " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
     std::cout << colors::BRIGHT_RED << "  +" << std::string(61, '-') << "+" << colors::RESET << std::endl;
-    std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_GREEN << "  [1]" << colors::RESET << " exploit/injection/process     " << colors::DIM << "T1055        " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
-    std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_GREEN << "  [2]" << colors::RESET << " exploit/injection/hollowing   " << colors::DIM << "T1055.012    " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
-    std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_GREEN << "  [3]" << colors::RESET << " exploit/lolbin/cpl            " << colors::DIM << "T1218.002    " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
-    std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_GREEN << "  [4]" << colors::RESET << " exploit/lolbin/mshta          " << colors::DIM << "T1218.005    " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
-    std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_GREEN << "  [5]" << colors::RESET << " exploit/persistence/dll_side  " << colors::DIM << "T1574.002    " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
-    std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_GREEN << "  [6]" << colors::RESET << " exploit/evasion/syscalls      " << colors::DIM << "T1106        " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
-    std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_GREEN << "  [7]" << colors::RESET << " exploit/evasion/edr_redir     " << colors::DIM << "T1562.001    " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
-    std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_GREEN << "  [8]" << colors::RESET << " exploit/privesc/byovd         " << colors::DIM << "T1068        " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_GREEN << "  [1]" << colors::RESET << " exploit/privesc/byovd         " << colors::DIM << "T1068        " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::DIM << "                                                             " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::DIM << "  [2-7] Additional exploits coming soon...                 " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
     std::cout << colors::BRIGHT_RED << "  +" << std::string(61, '-') << "+" << colors::RESET << std::endl;
-    std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_YELLOW << "  [9]" << colors::RESET << " run ALL " << colors::DIM << "                     (chained)    " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
     std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_RED << "  [0]" << colors::RESET << " back" << colors::DIM << "                                       " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
     std::cout << colors::BRIGHT_RED << "  +" << std::string(61, '-') << "+" << colors::RESET << std::endl;
     std::cout << std::endl;
@@ -756,32 +751,10 @@ void CLI::handleTechniqueMenu() {
     int choice = std::atoi(input.c_str());
     
     switch (choice) {
-        case 1: techniqueId = "T1055"; break;
-        case 2: techniqueId = "T1055.012"; break;
-        case 3: techniqueId = "T1218.002"; break;
-        case 4: techniqueId = "T1218.005"; break;
-        case 5: techniqueId = "T1574.002"; break;
-        case 6: techniqueId = "T1106"; break;
-        case 7: techniqueId = "T1562.001"; break;
-        case 8: techniqueId = "T1068"; break;
-        case 9: 
-            // Run all
-            UI::info("Running all techniques sequentially...");
-            {
-                std::vector<std::string> allTechniques = {
-                    "T1055", "T1055.012", "T1218.002", "T1218.005", 
-                    "T1574.002", "T1106", "T1562.001", "T1068"
-                };
-                for (const auto& t : allTechniques) {
-                    CommandContext ctx;
-                    ctx.args.push_back(t);
-                    cmdRun(ctx);
-                    SLEEP_MS(500);
-                }
-            }
-            return;
+        case 1: techniqueId = "T1068"; break;
         default:
-            UI::error("Invalid technique selection");
+            UI::error("Invalid selection. Only BYOVD (option 1) is currently implemented.");
+            std::cout << std::endl;
             return;
     }
     
@@ -951,7 +924,7 @@ void CLI::cmdRun(const CommandContext& ctx) {
     UI::box("Executing Technique", techniqueId);
     std::cout << std::endl;
     
-    // Simulate execution with progress
+    // Prepare execution
     UI::info("Preparing environment...");
     SLEEP_MS(500);
     
@@ -959,23 +932,62 @@ void CLI::cmdRun(const CommandContext& ctx) {
     SLEEP_MS(300);
     
     UI::info("Executing technique " + techniqueId + "...");
+    
+    // Show progress animation
     for (int i = 0; i <= 100; i += 10) {
         UI::progress(i, 100, techniqueId);
         SLEEP_MS(100);
     }
+    std::cout << std::endl;
+    
+    // ACTUAL EXPLOIT EXECUTION
+    std::map<std::string, std::string> options;
+    
+    // For BYOVD, set default driver path
+    if (techniqueId == "T1068") {
+        options["driver_path"] = "C:\\\\EDR-Test\\\\vulndriver.sys";
+    }
+    
+    edr::exploits::ExploitResult result = exploitManager_->execute(techniqueId, options);
     
     std::cout << std::endl;
-    UI::warning("Exploit execution module - awaiting implementation");
-    std::cout << std::endl;
+    
+    // Show results
+    if (result.success) {
+        UI::success("Exploit executed successfully!");
+        std::cout << std::endl;
+        if (!result.output.empty()) {
+            UI::info("Output:");
+            std::cout << result.output << std::endl << std::endl;
+        }
+    } else {
+        UI::error("Exploit execution failed");
+        std::cout << std::endl;
+        if (!result.errorMessage.empty()) {
+            UI::warning("Error: " + result.errorMessage);
+            std::cout << std::endl;
+        }
+    }
     
     // Show result table
     std::vector<std::string> headers = {"Field", "Value"};
     std::vector<std::vector<std::string>> data = {
-        {"Technique", techniqueId},
-        {"Status", "Placeholder"},
-        {"EDR Alert", "N/A"},
-        {"Duration", "1.2s"},
+        {"Technique", result.techniqueId},
+        {"Name", result.techniqueName},
+        {"Status", result.success ? "Success" : "Failed"},
+        {"EDR Alert", result.detected ? "Yes" : "No"},
+        {"Duration", std::to_string(result.executionTime.count()) + "ms"},
     };
+    
+    if (!result.artifacts.empty()) {
+        std::string artifactList;
+        for (const auto& artifact : result.artifacts) {
+            if (!artifactList.empty()) artifactList += ", ";
+            artifactList += artifact;
+        }
+        data.push_back({"Artifacts", artifactList});
+    }
+    
     UI::table(data, headers);
     std::cout << std::endl;
 }
@@ -985,13 +997,7 @@ void CLI::cmdList(const CommandContext& ctx) {
     
     std::vector<std::string> headers = {"#", "ID", "Name", "Tactic", "Status"};
     std::vector<std::vector<std::string>> data = {
-        {"1", "T1055", "Process Injection", "Defense Evasion", "Ready"},
-        {"2", "T1055.012", "Process Hollowing", "Defense Evasion", "Ready"},
-        {"3", "T1218.002", "Control Panel", "Defense Evasion", "Ready"},
-        {"4", "T1218.005", "Mshta", "Defense Evasion", "Ready"},
-        {"5", "T1574.002", "DLL Side-Loading", "Persistence", "Ready"},
-        {"6", "T1106", "Direct Syscalls", "Execution", "Ready"},
-        {"7", "T1562.001", "EDR Redirection", "Defense Evasion", "Ready"},
+        {"1", "T1068", "BYOVD (vulndriver.sys)", "Privilege Escalation", "Implemented"},
     };
     
     UI::info("Available Exploit Techniques");
@@ -999,7 +1005,8 @@ void CLI::cmdList(const CommandContext& ctx) {
     UI::table(data, headers);
     std::cout << std::endl;
     
-    UI::info("Use 'use exploit' to execute a technique");
+    UI::info("Additional techniques (T1055, T1218.002, etc.) coming soon...");
+    UI::info("Use 'use exploit' to execute BYOVD technique");
     std::cout << std::endl;
 }
 

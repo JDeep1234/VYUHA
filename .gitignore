@@ -6,4 +6,4 @@
 *.bat
 
 # context files for agent 
-*.md 
+#*.md 

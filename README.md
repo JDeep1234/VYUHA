@@ -1,0 +1,385 @@
+# 🛡️ EDR Adaptive Framework
+
+> **Advanced APT Simulation & EDR Evasion Assessment Platform**
+
+A comprehensive C++ framework for testing and evaluating Endpoint Detection and Response (EDR) solutions through simulated Advanced Persistent Threat (APT) techniques, mapped to the MITRE ATT&CK framework.
+
+---
+
+
+## 🎯 Overview
+
+The EDR Adaptive Framework is designed to help security teams:
+
+- **Assess EDR Effectiveness**: Test how well your EDR solution detects various attack techniques
+- **Simulate APT Campaigns**: Execute realistic attack chains mapped to the Cyber Kill Chain
+- **Identify Detection Gaps**: Discover blind spots in your security posture
+- **Generate Compliance Reports**: Produce detailed reports with MITRE ATT&CK mappings
+
+---
+
+## 📊 Project Status (February 2026)
+
+| Component | Owner | Status | Progress |
+|-----------|-------|--------|----------|
+| **CLI, Agent Core, Integration** | Jdeep | ✅ Complete | 100% |
+| **BYOVD Exploit (T1068)** | Bipin | ✅ Complete | 100% |
+| **Additional Exploits (3 planned)** | Bipin | 📋 Planned | 0% |
+| **ML Framework** | Karthik | 🔄 In Progress | 30% |
+
+**Overall Framework Status:** 🔄 Core functional, expanding exploit library
+
+**Current Capabilities:**
+- ✅ Fully interactive TUI with exploit execution
+- ✅ BYOVD kernel-level EDR process termination
+- ✅ Auto-detection of 60+ EDR products
+- ✅ VM snapshot management (Hyper-V, VirtualBox, VMware)
+- ✅ Telemetry and artifact cleanup systems
+- 🔄 ML-based attack strategy optimization (in progress)
+
+---
+
+## 🏗️ Architecture
+
+The framework follows a modular C++ architecture with distinct layers:
+
+<img width="1596" height="1072" alt="image" src="https://github.com/user-attachments/assets/8706fbd0-6f73-4fb6-afdf-3c3273fd7bea" />
+
+
+
+---
+
+## 📁 Project Structure
+
+```
+EDR-Adaptive-Framework/
+├── CMakeLists.txt              # Main build configuration
+├── README.md
+├── config/
+│   └── config.yaml             # Framework configuration
+│
+├── include/                    # Header files
+│   ├── cli/
+│   │   └── cli.hpp             # CLI interface [Jdeep]
+│   ├── agent_core/
+│   │   └── agent.hpp           # Agent core [Jdeep]
+│   ├── integration/
+│   │   └── integration_manager.hpp  # EDR/VM integration [Jdeep]
+│   ├── exploits/
+│   │   └── exploit_manager.hpp # Exploit techniques [BIPIN]
+│   └── ml_framework/
+│       └── ml_engine.hpp       # ML analysis [KARTHIK]
+│
+├── src/                        # Source files
+│   ├── main.cpp                # Entry point
+│   ├── cli/                    # CLI implementation [Jdeep]
+│   ├── agent_core/             # Agent core [Jdeep]
+│   ├── integration/            # Integration module [Jdeep]
+│   ├── exploits/               # Exploit scripts [BIPIN]
+│   └── ml_framework/           # ML framework [KARTHIK]
+│
+└── docs/
+    └── architecture.drawio     # Architecture diagram
+```
+
+---
+
+## 🚀 Building
+
+### Prerequisites
+
+- **CMake** 3.16+
+- **C++17** compatible compiler (MSVC, GCC, Clang)
+- **Windows SDK** (for Windows API)
+
+### Build Steps
+
+```bash
+# Clone repository
+git clone https://github.com/JDeep1234/EDR-Adaptive-Framework.git
+cd EDR-Adaptive-Framework
+
+# Create build directory
+mkdir build && cd build
+
+# Configure
+cmake ..
+
+# Build
+cmake --build . --config Release
+
+# Run
+./bin/edr_framework.exe --help
+```
+
+---
+
+## 📖 Usage
+
+### Basic Commands
+
+```bash
+# Execute single technique
+edr_framework run -t T1055 --verbose
+
+# Run attack campaign
+edr_framework campaign -c attacks.yaml -o html
+
+# List available techniques
+edr_framework list
+
+# Check EDR status
+edr_framework status
+
+# Create VM snapshot
+edr_framework snapshot -s clean_state
+
+# Cleanup artifacts
+edr_framework clean --all
+```
+
+### Campaign File Example (attacks.yaml)
+
+```yaml
+name: "APT Simulation Campaign"
+techniques:
+  - id: T1055
+    name: "Process Injection"
+    options:
+      target: notepad.exe
+      
+  - id: T1574.002
+    name: "DLL Side-Loading"
+    options:
+      app: Teams
+
+  - id: T1218.005
+    name: "Mshta Execution"
+```
+
+---
+
+## 🎯 MITRE ATT&CK Coverage
+
+### ✅ Implemented Techniques
+
+| Technique ID | Name | Tactic | Status | Owner |
+|--------------|------|--------|--------|-------|
+| **T1068** | **BYOVD - Exploitation for Privilege Escalation** | **Defense Evasion, Privilege Escalation** | **✅ 100%** | **Bipin** |
+
+### 📋 Planned Techniques (In Development)
+
+| Technique ID | Name | Tactic | Status | Owner |
+|--------------|------|--------|--------|-------|
+| T1055 | Process Injection | Defense Evasion | 📋 Planned | Bipin |
+| T1218.002 | Control Panel | Defense Evasion | 📋 Planned | Bipin |
+| T1218.005 | Mshta | Defense Evasion | 📋 Planned | Bipin |
+| T1574.002 | DLL Side-Loading | Persistence | 📋 Planned | Bipin |
+
+---
+
+## 🔧 Module Details
+
+### 🟢 Jdeep's Modules (CLI, Agent Core, Integration) - ✅ 100% Complete
+
+**Status:** Fully implemented and tested
+
+**CLI Tool (`src/cli/`)**
+- ✅ Interactive TUI with color-coded menus
+- ✅ Exploit selection and execution interface
+- ✅ Campaign management system
+- ✅ Snapshot integration controls
+- ✅ Real-time progress indicators
+
+**Agent Core (`src/agent_core/`)**
+- ✅ `Orchestrator`: Execution state machine
+- ✅ `OutputHandler`: JSON, CSV, HTML, STIX export
+- ✅ `Cleaner`: Artifact removal (files, registry, services)
+- ✅ `TelemetryMonitor`: EDR event monitoring
+
+**Integration (`src/integration/`)**
+- ✅ `EDRConnector`: CrowdStrike, Defender, Carbon Black APIs
+- ✅ `SnapshotManager`: Hyper-V, VirtualBox, VMware support
+- ✅ `CleanModule`: System backup and restore
+
+### 🟠 Bipin's Module (Exploit Scripts) - ✅ BYOVD Complete (1/4 Techniques)
+
+**Location:** `src/exploits/`
+
+**Development Status:**
+- **4 Major Techniques Planned**
+- **1 Technique Fully Implemented (100%)**
+- **3 Techniques Pending Development**
+
+#### ✅ Implemented: BYOVD (Bring Your Own Vulnerable Driver) - T1068
+
+**Status:** 100% Complete and Tested
+
+**Exploit Flow:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  BYOVD Attack Chain - CVE-2023-52271 (vulndriver.sys)      │
+└─────────────────────────────────────────────────────────────┘
+
+[1/6] Enable SeLoadDriverPrivilege
+      ↓ Obtain permission to load kernel drivers
+      
+[2/6] Deploy Driver (vulndriver.sys → TEMP)
+      ↓ Copy signed driver to system temp directory
+      
+[3/6] Create Windows Service ("WarsawPMDriver")
+      ↓ Register driver as kernel service
+      
+[4/6] Start Driver
+      ↓ Load vulnerable driver into kernel space
+      
+[5/6] Open Device Handle (\\.\Warsaw_PM)
+      ↓ Establish communication with kernel driver
+      
+[6/6] Test Kernel Access (IOCTL 0x22201C)
+      ↓ Verify ZwTerminateProcess capability
+      
+[*] Interactive Target Selection:
+    • Option 1: Auto-detect EDR processes (60+ signatures)
+      - Scans all running processes
+      - Identifies EDR agents (Defender, CrowdStrike, etc.)
+      - Displays PIDs and full paths
+      - User selects target from list
+      
+    • Option 2: Manual PID entry
+      - User provides specific process ID
+      - Direct termination via kernel IOCTL
+      
+    • Option 3: Load driver only
+      - Establishes kernel access without killing
+      - Leaves driver loaded for manual operations
+      
+[KILL] terminateProcess(pid)
+       ↓ Send IOCTL 0x22201C with target PID
+       ↓ Driver calls ZwTerminateProcess from kernel
+       ✓ Process terminated (bypasses EDR hooks)
+
+[CLEANUP] Automatic artifact removal
+          ↓ Close device handle
+          ↓ Stop and delete service
+          ↓ Remove driver file
+```
+
+**Capabilities:**
+- ✅ Interactive driver path configuration
+- ✅ Automatic EDR process detection (60+ vendors)
+- ✅ Kernel-level process termination (bypasses PPL/PPE)
+- ✅ Three operating modes (auto/manual/load-only)
+- ✅ Complete cleanup on exit
+
+**Supported EDR Detection:**
+- Microsoft Defender, CrowdStrike Falcon, SentinelOne
+- Carbon Black, Symantec, McAfee/Trellix, Trend Micro
+- Kaspersky, ESET, Sophos, Palo Alto, Cylance
+- FireEye, Fortinet, Cisco AMP, Webroot
+- *Full list: 60+ process signatures*
+
+**Technical Details:**
+- **CVE:** CVE-2023-52271
+- **Driver:** vulndriver.sys (wsftprm.sys)
+- **Signer:** TPZ SOLUCOES DIGITAIS LTDA
+- **Blocklist Status:** NOT blocklisted by Microsoft (as of 2026)
+- **IOCTL Code:** 0x22201C (1036-byte buffer, PID in first 4 bytes)
+- **Kernel Function:** ZwTerminateProcess
+- **Device Object:** `\\.\Warsaw_PM`
+
+📖 **Full Documentation:** [BYOVD_USAGE.md](BYOVD_USAGE.md)
+
+---
+
+#### 📋 Planned Techniques (0% - Pending)
+
+1. **Process Injection (T1055)** - Advanced APC injection and hollowing
+2. **Control Panel Execution (T1218.002)** - CPL file abuse via rundll32
+3. **Mshta Execution (T1218.005)** - HTA-based payload delivery
+4. **DLL Side-Loading (T1574.002)** - DLL hijacking (MS Teams, etc.)
+
+**How to Add New Exploit:**
+```cpp
+// In src/exploits/your_exploit.cpp
+class YourExploit : public BaseExploit {
+public:
+    ExploitResult execute(const std::map<std::string, std::string>& options) override {
+        // Your implementation
+    }
+    
+    TechniqueInfo getInfo() const override {
+        // Return MITRE info
+    }
+};
+```
+
+### 🟣 Karthik's Module (ML Framework) - 🔄 30% Complete
+
+**Location:** `src/ml_framework/`
+
+**Status:** Architecture designed, core infrastructure implemented, models pending
+
+**Completed Components:**
+- ✅ ML Engine core structure (`ml_engine.cpp`, `ml_engine.hpp`)
+- ✅ Python integration layer (`python/` directory)
+- ✅ Data pipeline foundation
+- ✅ Model storage directory structure
+- ✅ Design documentation (DESIGN.md, README.md, ROADMAP.md)
+
+**Components to Implement (70% remaining):**
+- 🔄 `StrategySelector`: RL-based attack technique selection engine (DQN/PPO)
+- 🔄 `BehaviorAnalyzer`: EDR response pattern recognition and clustering
+- 🔄 `ExplainableAI`: SHAP/LIME-based failure analysis and feature importance
+- 🔄 `AdaptiveLearner`: Online learning, transfer learning, and failure pattern analysis
+
+**Python Scripts (Pending Implementation):**
+- 📋 `adaptive_learner.py` - Online learning algorithms
+- 📋 `behavior_analyzer.py` - EDR pattern clustering
+- 📋 `explainable_ai.py` - SHAP/LIME analysis
+- 📋 `strategy_selector.py` - Reinforcement learning models
+
+**See detailed design:** [`src/ml_framework/DESIGN.md`](src/ml_framework/DESIGN.md)
+
+**How to Add ML Model:**
+```cpp
+// In src/ml_framework/your_analyzer.cpp
+class YourAnalyzer : public BaseAnalyzer {
+public:
+    void analyze(const void* executionResult) override {
+        // Your ML analysis
+    }
+    
+    std::string getReport() const override {
+        // Return analysis results
+    }
+};
+```
+
+---
+
+## 🔒 Supported EDRs
+
+| EDR | Integration Status |
+|-----|-------------------|
+| Microsoft Defender | ✅ Implemented |
+| CrowdStrike Falcon | 🔄 API Ready |
+| VMware Carbon Black | 🔄 API Ready |
+| SentinelOne | 📋 Planned |
+| Sophos | 📋 Planned |
+
+---
+
+## 🖥️ VM Providers
+
+| Provider | Status |
+|----------|--------|
+| Hyper-V | ✅ Implemented |
+| VirtualBox | ✅ Implemented |
+| VMware Workstation | ✅ Implemented |
+
+---
+
+
+

@@ -16,6 +16,13 @@
 #include <functional>
 #include <memory>
 
+// Forward declarations
+namespace edr {
+namespace exploits {
+    class ExploitManager;
+}
+}
+
 namespace edr {
 namespace cli {
 
@@ -158,6 +165,7 @@ private:
     std::vector<std::string> history_;
     bool running_;
     std::string currentSession_;
+    std::shared_ptr<edr::exploits::ExploitManager> exploitManager_;
     
     void registerBuiltinCommands();
     void showHelp(const CommandContext& ctx);

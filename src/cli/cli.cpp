@@ -587,8 +587,7 @@ void CLI::showTechniqueMenu() {
     std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BOLD << "               AVAILABLE EXPLOIT MODULES                    " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
     std::cout << colors::BRIGHT_RED << "  +" << std::string(61, '-') << "+" << colors::RESET << std::endl;
     std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_GREEN << "  [1]" << colors::RESET << " exploit/privesc/byovd         " << colors::DIM << "T1068        " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
-    std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::DIM << "                                                             " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
-    std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::DIM << "  [2-7] Additional exploits coming soon...                 " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
+    std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_GREEN << "  [2]" << colors::RESET << " exploit/evasion/edr_freeze    " << colors::DIM << "T1562.001    " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
     std::cout << colors::BRIGHT_RED << "  +" << std::string(61, '-') << "+" << colors::RESET << std::endl;
     std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BRIGHT_RED << "  [0]" << colors::RESET << " back" << colors::DIM << "                                       " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
     std::cout << colors::BRIGHT_RED << "  +" << std::string(61, '-') << "+" << colors::RESET << std::endl;
@@ -752,8 +751,9 @@ void CLI::handleTechniqueMenu() {
     
     switch (choice) {
         case 1: techniqueId = "T1068"; break;
+        case 2: techniqueId = "T1562.001"; break;
         default:
-            UI::error("Invalid selection. Only BYOVD (option 1) is currently implemented.");
+            UI::error("Invalid selection. Choose from available exploits (1-2).");
             std::cout << std::endl;
             return;
     }
@@ -965,6 +965,40 @@ void CLI::cmdRun(const CommandContext& ctx) {
         }
         
         std::cout << std::endl;
+    } else if (techniqueId == "T1562.001") {
+        // EDR-Freeze interactive configuration
+        std::cout << colors::BRIGHT_YELLOW << "[i] Target Selection:" << colors::RESET << std::endl;
+        std::cout << "    1. Auto-detect EDR processes" << std::endl;
+        std::cout << "    2. Manual PID entry" << std::endl;
+        std::cout << std::endl;
+        std::cout << "    Choice: ";
+        
+        std::string choice = readLine();
+        if (choice == "1") {
+            options["mode"] = "auto_detect";
+        } else if (choice == "2") {
+            options["mode"] = "manual";
+            std::cout << "    Enter target PID: ";
+            std::string pidStr = readLine();
+            options["target_pid"] = pidStr;
+        } else {
+            UI::error("Invalid choice");
+            return;
+        }
+        
+        std::cout << std::endl;
+        std::cout << colors::BRIGHT_CYAN << "[?] Freeze Duration" << colors::RESET << std::endl;
+        std::cout << "    Default: " << colors::DIM << "10000 ms (10 seconds)" << colors::RESET << std::endl;
+        std::cout << "    Enter duration in milliseconds (or press ENTER for default): ";
+        
+        std::string sleepStr = readLine();
+        if (sleepStr.empty()) {
+            options["sleep_ms"] = "10000";
+        } else {
+            options["sleep_ms"] = sleepStr;
+        }
+        
+        std::cout << std::endl;
     }
     
     // Prepare execution
@@ -1034,6 +1068,7 @@ void CLI::cmdList(const CommandContext& ctx) {
     std::vector<std::string> headers = {"#", "ID", "Name", "Tactic", "Status"};
     std::vector<std::vector<std::string>> data = {
         {"1", "T1068", "BYOVD (vulndriver.sys)", "Privilege Escalation", "Implemented"},
+        {"2", "T1562.001", "EDR-Freeze (WerFault)", "Defense Evasion", "Implemented"},
     };
     
     UI::info("Available Exploit Techniques");
@@ -1041,8 +1076,7 @@ void CLI::cmdList(const CommandContext& ctx) {
     UI::table(data, headers);
     std::cout << std::endl;
     
-    UI::info("Additional techniques (T1055, T1218.002, etc.) coming soon...");
-    UI::info("Use 'use exploit' to execute BYOVD technique");
+    UI::info("Use 'use exploit' to execute available techniques");
     std::cout << std::endl;
 }
 

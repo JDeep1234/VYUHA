@@ -24,14 +24,16 @@ The EDR Adaptive Framework is designed to help security teams:
 |-----------|-------|--------|----------|
 | **CLI, Agent Core, Integration** | Jdeep | ✅ Complete | 100% |
 | **BYOVD Exploit (T1068)** | Bipin | ✅ Complete | 100% |
-| **Additional Exploits (3 planned)** | Bipin | 📋 Planned | 0% |
+| **EDR-Freeze Exploit (T1562.001)** | Bipin | ✅ Complete | 100% |
+| **Additional Exploits (2 planned)** | Bipin | 📋 Planned | 0% |
 | **ML Framework** | Karthik | 🔄 In Progress | 30% |
 
-**Overall Framework Status:** 🔄 Core functional, expanding exploit library
+**Overall Framework Status:** 🔄 Core functional, 2 exploits operational
 
 **Current Capabilities:**
 - ✅ Fully interactive TUI with exploit execution
-- ✅ BYOVD kernel-level EDR process termination
+- ✅ BYOVD kernel-level EDR process termination (T1068)
+- ✅ EDR-Freeze user-mode process suspension (T1562.001)
 - ✅ Auto-detection of 60+ EDR products
 - ✅ VM snapshot management (Hyper-V, VirtualBox, VMware)
 - ✅ Telemetry and artifact cleanup systems
@@ -166,6 +168,7 @@ techniques:
 | Technique ID | Name | Tactic | Status | Owner |
 |--------------|------|--------|--------|-------|
 | **T1068** | **BYOVD - Exploitation for Privilege Escalation** | **Defense Evasion, Privilege Escalation** | **✅ 100%** | **Bipin** |
+| **T1562.001** | **EDR-Freeze - Impair Defenses (Process Suspension)** | **Defense Evasion** | **✅ 100%** | **Bipin** |
 
 ### 📋 Planned Techniques (In Development)
 
@@ -202,14 +205,14 @@ techniques:
 - ✅ `SnapshotManager`: Hyper-V, VirtualBox, VMware support
 - ✅ `CleanModule`: System backup and restore
 
-### 🟠 Bipin's Module (Exploit Scripts) - ✅ BYOVD Complete (1/4 Techniques)
+### 🟠 Bipin's Module (Exploit Scripts) - ✅ 2/4 Techniques Complete
 
 **Location:** `src/exploits/`
 
 **Development Status:**
 - **4 Major Techniques Planned**
-- **1 Technique Fully Implemented (100%)**
-- **3 Techniques Pending Development**
+- **2 Techniques Fully Implemented (50%)**
+- **2 Techniques Pending Development**
 
 #### ✅ Implemented: BYOVD (Bring Your Own Vulnerable Driver) - T1068
 
@@ -289,7 +292,78 @@ techniques:
 - **Kernel Function:** ZwTerminateProcess
 - **Device Object:** `\\.\Warsaw_PM`
 
-📖 **Full Documentation:** [BYOVD_USAGE.md](BYOVD_USAGE.md)
+📖 **Full Documentation:** [BYOVD_USAGE.md](contexts/BYOVD_USAGE.md)
+
+---
+
+#### ✅ Implemented: EDR-Freeze (Process Suspension Deadlock) - T1562.001
+
+**Status:** 100% Complete and Tested
+
+**Exploit Flow:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  EDR-Freeze Attack Chain - WerFaultSecure Race Condition   │
+└─────────────────────────────────────────────────────────────┘
+
+[1/4] Enable SeDebugPrivilege
+      ↓ Obtain permission for process manipulation
+      
+[2/4] Identify Target EDR Process
+      ↓ Auto-detect or manual PID selection
+      ↓ Resolve main thread ID (via NtQuerySystemInformation)
+      
+[3/4] Launch WerFaultSecure.exe as PPL (WinTCB)
+      ↓ CreateProcess with PROC_THREAD_ATTRIBUTE_PROTECTION_LEVEL
+      ↓ Command: /h /pid <TARGET_PID> /tid <TARGET_TID> ...
+      ↓ MiniDumpWriteDump() suspends ALL target threads
+      
+[4/4] Win the Race - Monitor & Freeze
+      ↓ Spin-wait loop detects target suspension
+      ↓ Call NtSuspendProcess(WerFaultSecure)
+      ✓ DEADLOCK: EDR waiting for dump, WerFault suspended
+      ✓ EDR enters "coma state" (all threads suspended)
+      
+[HOLD] Sleep for configured duration (default: 10 seconds)
+       ↓ EDR remains unresponsive, security monitoring disabled
+       
+[RELEASE] Terminate WerFaultSecure
+          ↓ EDR process resumes normal operation
+          ↓ Delete dump file artifact
+```
+
+**Capabilities:**
+- ✅ User-mode only (no driver required)
+- ✅ Living-off-the-Land (uses Windows component)
+- ✅ Reversible freeze (EDR resumes after release)
+- ✅ Auto-detection of EDR processes
+- ✅ Configurable freeze duration
+- ✅ Automatic artifact cleanup
+
+**Supported Targets:**
+- Microsoft Defender (MsMpEng.exe, MsSense.exe)
+- CrowdStrike Falcon (CSFalconService.exe) 
+- SentinelOne (SentinelAgent.exe)
+- Carbon Black (CbDefense.exe)
+- Any process with active threads (PPL-protected or not)
+
+**Technical Details:**
+- **Technique:** Race condition exploitation
+- **Component:** WerFaultSecure.exe (Windows Error Reporting)
+- **Protection Level:** WinTCB (PPL level 0)
+- **Suspend Mechanism:** MiniDumpWriteDump thread suspension
+- **Deadlock:** NtSuspendProcess on WerFaultSecure
+- **Detection:** Behavioral only (no signature-based)
+
+**Advantages over BYOVD:**
+- ✅ No kernel driver required
+- ✅ Legitimate Windows binary (LOLBIN)
+- ✅ Reversible (EDR not killed, just frozen)
+- ✅ No blocklisted drivers
+- ✅ Harder to detect (no driver load telemetry)
+
+📖 **Full Documentation:** [EDR_FREEZE_USAGE.md](contexts/EDR_FREEZE_USAGE.md)
 
 ---
 

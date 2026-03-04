@@ -1,0 +1,13 @@
+session_id,timestamp,edr_name,technique_id,action_id,success,detected,outcome,reward,epsilon,state_ppl,state_dse,state_secure_boot,state_virt,time_to_detection_ms,notes
+session_seed_001,2026-02-07 10:00:01,Defender,T1068,0,false,true,action_blocked,-75,1.000,true,true,true,false,310,BYOVD blocked by DSE
+session_seed_001,2026-02-07 10:00:35,Defender,T1055.001,3,false,true,detected_alert,-50,0.995,true,true,true,false,295,Handle dup detected
+session_seed_001,2026-02-07 10:01:10,Defender,T1134,2,true,false,edr_terminated,120,0.990,true,true,true,false,0,PPL bypass succeeded (stealth)
+session_seed_002,2026-02-07 11:00:00,CrowdStrike,T1068,0,false,true,action_blocked,-75,1.000,true,true,true,true,285,BYOVD blocked
+session_seed_002,2026-02-07 11:00:40,CrowdStrike,T1055,6,false,true,action_blocked,-75,0.995,true,true,true,true,190,Syscall blocked by kernel callback
+session_seed_002,2026-02-07 11:01:18,CrowdStrike,T1574.002,4,false,true,detected_alert,-50,0.990,true,true,true,true,270,Minifilter unload detected
+session_seed_002,2026-02-07 11:01:55,CrowdStrike,T1562.006,5,true,false,edr_terminated,100,0.985,true,true,true,true,0,Callback removal succeeded
+session_seed_003,2026-02-07 12:00:00,CarbonBlack,T1068,0,true,false,edr_terminated,120,1.000,false,true,false,false,0,BYOVD succeeded (no PPL)
+session_seed_004,2026-02-07 13:00:00,SentinelOne,T1068,0,false,true,action_blocked,-75,1.000,true,true,true,true,195,BYOVD blocked
+session_seed_004,2026-02-07 13:00:38,SentinelOne,T1055,6,true,false,edr_terminated,100,0.995,true,true,true,true,0,Syscall evasion succeeded
+session_seed_005,2026-02-07 14:00:00,Sophos,T1068,0,true,true,partial_success,50,1.000,false,false,false,false,1450,Driver loaded but detected
+session_seed_005,2026-02-07 14:00:45,Sophos,T1055,6,true,false,edr_terminated,120,0.995,false,false,false,false,0,Syscall succeeded undetected

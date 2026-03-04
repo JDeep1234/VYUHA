@@ -41,58 +41,64 @@ python -c "import torch; import shap; import pybind11; print('✓ All dependenci
 
 ```
 ml_framework/
-├── DESIGN.md              # Comprehensive design documentation (READ THIS FIRST!)
-├── README.md              # This file
-├── requirements.txt       # Python dependencies
+├── DESIGN.md                   # Comprehensive design documentation
+├── ROADMAP.md                  # Implementation roadmap
+├── README.md                   # This file
+├── requirements.txt            # Python dependencies
 │
-├── python/                # Python ML implementation (create this)
-│   ├── strategy_selector.py
-│   ├── behavior_analyzer.py
-│   ├── explainable_ai.py
-│   └── adaptive_learner.py
+├── python/                     # Python ML implementation ✅ Complete
+│   ├── strategy_selector.py    # ✅ DQN agent (state=30, actions=8)
+│   ├── behavior_analyzer.py    # ✅ K-means EDR clustering
+│   ├── explainable_ai.py       # ✅ SHAP/gradient explainability
+│   ├── adaptive_learner.py     # ✅ Online/transfer learning
+│   ├── ml_server.py            # ✅ stdio JSON bridge server (10 cmds)
+│   ├── utils.py                # ✅ Shared constants & reward helpers
+│   └── train_agent.py          # ✅ Standalone training CLI
 │
-├── models/                # Trained models (create this)
-│   └── .gitkeep
+├── models/                     # Trained models (populated at runtime)
 │
-├── data/                  # Training data (create this)
-│   └── .gitkeep
+├── data/                       # Training data ✅ Seeded
+│   ├── edr_profiles.json       # ✅ 6 EDR seed profiles for clustering
+│   └── execution_logs.csv      # ✅ Seed execution log data
 │
-├── ml_bridge.cpp          # C++ ↔ Python interface (to be created)
-├── ml_engine.cpp          # Existing C++ implementation
-└── ml_engine.hpp          # Existing header
+├── detection_analyzer.cpp      # ✅ 22-keyword weighted alert detection
+├── evasion_scorer.cpp          # ✅ Rolling per-technique stealth scoring
+├── event_correlator.cpp        # ✅ MITRE ATT&CK correlation (10 entries)
+├── ml_bridge.cpp               # ✅ C++ ↔ Python subprocess bridge (Win32)
+├── ml_engine.cpp               # ✅ Full analyze/recommend/report/save/load
+└── ml_engine.hpp               # ✅ Clean class declarations
 ```
 
 ---
 
-## 🎯 Your Implementation Tasks
+## ✅ Implementation Status — Complete
 
-### Phase 1: Core RL Agent (Week 1-2)
-- [ ] Implement `strategy_selector.py` with DQN
-- [ ] Define state space (30 features)
-- [ ] Define action space (8 techniques)
-- [ ] Define reward function
+### Phase 1: Core RL Agent
+- [x] `strategy_selector.py` — DQN with policy/target networks, epsilon-greedy, experience replay
+- [x] State space: 30 features (EDR one-hot, runtime state, Windows version, system config, last action)
+- [x] Action space: 8 techniques (BYOVD RTCore/DBUtil, PPL Bypass, Handle Dup, Minifilter, Callback, Syscall, Wait)
+- [x] Reward function: +100 terminated, +75 silenced, +50 partial, -50 detected, -75 blocked, -100 crash; stealth bonus/burn penalty
 
-### Phase 2: Behavior Analysis (Week 3)
-- [ ] Implement `behavior_analyzer.py`
-- [ ] EDR response feature extraction
-- [ ] K-means clustering for EDR grouping
+### Phase 2: Behavior Analysis
+- [x] `behavior_analyzer.py` — K-means n=4, 11-feature EDR response extraction
+- [x] EDR response feature extraction via `analyze_response()`
+- [x] K-means clustering with `cluster_edrs()` and persistence to `data/edr_observations.json`
 
-### Phase 3: Explainable AI (Week 4)
-- [ ] Implement `explainable_ai.py`
-- [ ] SHAP integration
-- [ ] LIME integration
-- [ ] Generate human-readable explanations
+### Phase 3: Explainable AI
+- [x] `explainable_ai.py` — SHAP KernelExplainer on DQN predict wrapper
+- [x] Gradient-based fallback when shap not installed
+- [x] `feature_importance_global()`, `compare_techniques()`, `_build_narrative()`
 
-### Phase 4: Adaptive Learning (Week 5)
-- [ ] Implement `adaptive_learner.py`
-- [ ] Online learning updates
-- [ ] Transfer learning between EDRs
-- [ ] Failure pattern analysis
+### Phase 4: Adaptive Learning
+- [x] `adaptive_learner.py` — `online_update()` calls `agent.remember()` + `agent.replay()`
+- [x] `transfer_learning()` with cosine similarity weight check
+- [x] `analyze_failure_patterns()` blacklists (edr, technique) pairs; persists to `data/execution_history.json`
 
-### Phase 5: C++ Integration (Week 6)
-- [ ] Create `ml_bridge.cpp` with pybind11
-- [ ] Integrate with existing `ml_engine.cpp`
-- [ ] Test end-to-end pipeline
+### Phase 5: C++ Integration
+- [x] `ml_bridge.cpp` — Windows `CreateProcess` subprocess (JSON stdio, no pybind11)
+- [x] `ml_engine.cpp` — full three-analyzer loop wired into `AgentCore::runCampaign()`
+- [x] `ml_server.py` — 10-command stdio server bridging C++ ↔ Python
+- [x] End-to-end pipeline: CLI → AgentCore → [DQN → Bipin exploit → analyze → train]
 
 ---
 
@@ -211,10 +217,10 @@ Target metrics for successful implementation:
 
 | Metric | Target | Current |
 |--------|--------|---------|
-| EDR Termination Success Rate | >60% | TBD |
-| Avg Techniques/Episode | <4 | TBD |
-| Prediction Accuracy (Top-3) | >70% | TBD |
-| Training Episodes to Convergence | <200 | TBD |
+| EDR Termination Success Rate | >60% | Tracked live via `EvasionScorer` |
+| Avg Techniques/Episode | <4 | Tracked live via campaign results |
+| Prediction Accuracy (Top-3) | >70% | Logged per episode in `execution_logs.csv` |
+| Training Episodes to Convergence | <200 | Run `train_agent.py --episodes 500 --verbose` |
 
 ---
 
@@ -236,8 +242,10 @@ Install Python 3.8+ and add to PATH
 ### "Module 'torch' not found"
 Run `pip install -r requirements.txt`
 
-### "Segfault in pybind11"
-Check data type conversions in ml_bridge.cpp
+### "Python subprocess not responding"
+- Ensure Python is on PATH: `python --version`
+- Check `ml_server.log` (written next to the binary) for Python-side errors
+- The bridge uses subprocess JSON stdio — no pybind11 required
 
 ### "Model not learning"
 - Verify reward function is correct

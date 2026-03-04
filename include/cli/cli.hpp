@@ -21,6 +21,12 @@ namespace edr {
 namespace exploits {
     class ExploitManager;
 }
+namespace agent {
+    class AgentCore;
+}
+namespace ml {
+    class MLEngine;
+}
 }
 
 namespace edr {
@@ -166,6 +172,8 @@ private:
     bool running_;
     std::string currentSession_;
     std::shared_ptr<edr::exploits::ExploitManager> exploitManager_;
+    std::shared_ptr<edr::agent::AgentCore>          agentCore_;
+    std::shared_ptr<edr::ml::MLEngine>               mlEngine_;
     
     void registerBuiltinCommands();
     void showHelp(const CommandContext& ctx);

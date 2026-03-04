@@ -9,6 +9,8 @@
 
 #include "cli/cli.hpp"
 #include "exploits/exploit_manager.hpp"
+#include "agent_core/agent.hpp"
+#include "ml_framework/ml_engine.hpp"
 #include <iostream>
 #include <sstream>
 #include <algorithm>
@@ -519,8 +521,22 @@ void UI::banner() {
 // CLI IMPLEMENTATION
 // ============================================================================
 
-CLI::CLI() : running_(false), exploitManager_(std::make_shared<edr::exploits::ExploitManager>()) {
+CLI::CLI()
+    : running_(false)
+    , exploitManager_(std::make_shared<edr::exploits::ExploitManager>())
+    , agentCore_(std::make_shared<edr::agent::AgentCore>())
+    , mlEngine_(std::make_shared<edr::ml::MLEngine>())
+{
     UI::enableAnsi();
+
+    // Boot the ML engine (starts Python bridge if Python is available)
+    if (!mlEngine_->initialize()) {
+        UI::warning("ML engine Python bridge unavailable — C++-only mode.");
+    }
+
+    // Boot the agent core (starts telemetry monitoring)
+    agentCore_->initialize();
+
     registerBuiltinCommands();
     
     // Generate session ID
@@ -1141,10 +1157,54 @@ void CLI::cmdCampaign(const CommandContext& ctx) {
         handleCampaignMenu();
         return;
     }
-    
+
+    const std::string& campaignFile = ctx.args[0];
+
     std::cout << std::endl;
-    UI::info("Loading campaign: " + ctx.args[0]);
-    UI::info("Campaign module ready for execution");
+    UI::info("Campaign file : " + campaignFile);
+    UI::info("ML engine     : " + std::string(mlEngine_ ? "active" : "offline"));
+    UI::info("Exploit mgr   : " + std::to_string(exploitManager_ ? 1 : 0) + " loaded");
+    std::cout << std::endl;
+
+    if (!UI::confirm("Launch adaptive campaign? (ML + Exploits)")) {
+        UI::info("Campaign aborted.");
+        return;
+    }
+
+    std::cout << std::endl;
+    UI::info("Starting AgentCore::runCampaign() ...");
+    std::cout << std::endl;
+
+    // Full three-way integration: Jdeep agent + Bipin exploits + Karthik ML
+    auto results = agentCore_->runCampaign(campaignFile,
+                                            *exploitManager_,
+                                            *mlEngine_);
+
+    // Print summary
+    std::cout << std::endl;
+    int successes = 0;
+    for (const auto& r : results) {
+        if (r.success) ++successes;
+        std::string status = r.success
+            ? (colors::BRIGHT_GREEN + std::string("[+] SUCCESS") + colors::RESET)
+            : (colors::BRIGHT_RED   + std::string("[-] FAILED ") + colors::RESET);
+        std::cout << "  " << status << "  " << r.techniqueId
+                  << "  (" << r.duration.count() << " ms)";
+        if (!r.mitreTactic.empty())
+            std::cout << "  [" << r.mitreTactic << "]";
+        std::cout << std::endl;
+    }
+
+    std::cout << std::endl;
+    UI::success("Campaign complete: " + std::to_string(successes) + "/"
+                + std::to_string(results.size()) + " techniques succeeded.");
+
+    // Session-wide ML report
+    auto report = mlEngine_->generateReport();
+    if (!report.recommendation.empty()) {
+        std::cout << std::endl;
+        UI::info("ML Recommendation: " + report.recommendation);
+    }
     std::cout << std::endl;
 }
 

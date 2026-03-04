@@ -18,7 +18,7 @@ The EDR Adaptive Framework is designed to help security teams:
 
 ---
 
-## 📊 Project Status (February 2026)
+## 📊 Project Status (March 2026)
 
 | Component | Owner | Status | Progress |
 |-----------|-------|--------|----------|
@@ -26,9 +26,9 @@ The EDR Adaptive Framework is designed to help security teams:
 | **BYOVD Exploit (T1068)** | Bipin | ✅ Complete | 100% |
 | **EDR-Freeze Exploit (T1562.001)** | Bipin | ✅ Complete | 100% |
 | **Additional Exploits (2 planned)** | Bipin | 📋 Planned | 0% |
-| **ML Framework** | Karthik | 🔄 In Progress | 30% |
+| **ML Framework** | Karthik | ✅ Complete | 100% |
 
-**Overall Framework Status:** 🔄 Core functional, 2 exploits operational
+**Overall Framework Status:** ✅ Fully operational — all three modules complete and integrated end-to-end
 
 **Current Capabilities:**
 - ✅ Fully interactive TUI with exploit execution
@@ -37,7 +37,7 @@ The EDR Adaptive Framework is designed to help security teams:
 - ✅ Auto-detection of 60+ EDR products
 - ✅ VM snapshot management (Hyper-V, VirtualBox, VMware)
 - ✅ Telemetry and artifact cleanup systems
-- 🔄 ML-based attack strategy optimization (in progress)
+- ✅ ML-based adaptive attack strategy (DQN + SHAP + K-means, fully integrated)
 
 ---
 
@@ -389,47 +389,38 @@ public:
 };
 ```
 
-### 🟣 Karthik's Module (ML Framework) - 🔄 30% Complete
+### 🟣 Karthik's Module (ML Framework) - ✅ 100% Complete
 
 **Location:** `src/ml_framework/`
 
-**Status:** Architecture designed, core infrastructure implemented, models pending
+**Status:** Fully implemented and integrated with Jdeep's agent loop and Bipin's exploit engine
 
 **Completed Components:**
-- ✅ ML Engine core structure (`ml_engine.cpp`, `ml_engine.hpp`)
-- ✅ Python integration layer (`python/` directory)
-- ✅ Data pipeline foundation
-- ✅ Model storage directory structure
-- ✅ Design documentation (DESIGN.md, README.md, ROADMAP.md)
+- ✅ `ml_engine.cpp` — Full `analyze()`, `recommendAction()`, `generateReport()`, `loadModels()`, `saveModels()`
+- ✅ `ml_bridge.cpp` — Windows `CreateProcess` subprocess bridge (JSON stdio, no pybind11 required)
+- ✅ `detection_analyzer.cpp` — 22-keyword weighted EDR alert detection
+- ✅ `evasion_scorer.cpp` — Rolling per-technique stealth scoring
+- ✅ `event_correlator.cpp` — MITRE ATT&CK correlation (10 technique mappings)
+- ✅ `python/strategy_selector.py` — DQN agent (state=30, actions=8, experience replay, target network)
+- ✅ `python/behavior_analyzer.py` — K-means EDR clustering (n=4), observation accumulation
+- ✅ `python/explainable_ai.py` — SHAP KernelExplainer + gradient fallback, human-readable narratives
+- ✅ `python/adaptive_learner.py` — Online learning, transfer learning, failure pattern blacklisting
+- ✅ `python/ml_server.py` — stdio JSON server (10 commands: select_action, train, explain, cluster, etc.)
+- ✅ `python/utils.py` — Shared constants: FEATURE_NAMES[30], ACTIONS[8], reward helpers, state builder
+- ✅ `python/train_agent.py` — Standalone training CLI with SimulatedEDREnv and transfer learning
+- ✅ `data/edr_profiles.json` — 6 EDR seed profiles for K-means initialisation
+- ✅ `data/execution_logs.csv` — Seed execution log data
 
-**Components to Implement (70% remaining):**
-- 🔄 `StrategySelector`: RL-based attack technique selection engine (DQN/PPO)
-- 🔄 `BehaviorAnalyzer`: EDR response pattern recognition and clustering
-- 🔄 `ExplainableAI`: SHAP/LIME-based failure analysis and feature importance
-- 🔄 `AdaptiveLearner`: Online learning, transfer learning, and failure pattern analysis
-
-**Python Scripts (Pending Implementation):**
-- 📋 `adaptive_learner.py` - Online learning algorithms
-- 📋 `behavior_analyzer.py` - EDR pattern clustering
-- 📋 `explainable_ai.py` - SHAP/LIME analysis
-- 📋 `strategy_selector.py` - Reinforcement learning models
+**Integration:**
+```
+CLI::cmdCampaign()
+  └── AgentCore::runCampaign(file, exploits, mlEngine)
+        ├── mlEngine.recommendAction(state)     ← DQN selects technique
+        ├── exploitManager.execute(techniqueId) ← Bipin's real Win32 exploits
+        └── mlEngine.analyze(result, s, s')     ← 3 analyzers + online train
+```
 
 **See detailed design:** [`src/ml_framework/DESIGN.md`](src/ml_framework/DESIGN.md)
-
-**How to Add ML Model:**
-```cpp
-// In src/ml_framework/your_analyzer.cpp
-class YourAnalyzer : public BaseAnalyzer {
-public:
-    void analyze(const void* executionResult) override {
-        // Your ML analysis
-    }
-    
-    std::string getReport() const override {
-        // Return analysis results
-    }
-};
-```
 
 ---
 

@@ -2,12 +2,14 @@
  * ============================================================================
  * ML FRAMEWORK MODULE - Header
  * ============================================================================
- * Author: KARTHIK
- * 
+ * Authors: Karthik (ML core) + Jdeep (integration)
+ *
  * Machine Learning framework for detection analysis, evasion scoring,
- * and MITRE ATT&CK event correlation.
- * 
- * KARTHIK: Add your ML implementations here!
+ * MITRE ATT&CK event correlation, and DQN-driven strategy selection.
+ *
+ * Integration points:
+ *   - Receives ExploitResult from Bipin's ExploitManager (via Jdeep's agent)
+ *   - Returns AnalysisReport + recommended next action to Jdeep's orchestrator
  * ============================================================================
  */
 
@@ -18,6 +20,12 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <functional>
+
+// Pull in ExploitResult so analyze() is properly typed
+#include "exploits/exploit_manager.hpp"
+// Pull in Bridge types (SystemState, ActionResponse, etc.)
+#include "ml_framework/ml_bridge.hpp"
 
 namespace edr {
 namespace ml {
@@ -99,147 +107,134 @@ public:
 // KARTHIK'S ML IMPLEMENTATIONS - ADD YOUR CODE HERE!
 // ============================================================================
 
-/*
- * ┌─────────────────────────────────────────────────────────────────────────┐
- * │                    DETECTION ANALYZER                                   │
- * │                    Pattern Recognition                                   │
- * │                                                                          │
- * │  KARTHIK: Implement detection pattern analysis here                     │
- * │                                                                          │
- * │  Features to implement:                                                  │
- * │    - Signature-based detection analysis                                 │
- * │    - Behavioral pattern matching                                         │
- * │    - ML model for detection prediction                                   │
- * └─────────────────────────────────────────────────────────────────────────┘
- */
 class DetectionAnalyzer : public BaseAnalyzer {
 public:
     DetectionAnalyzer();
     ~DetectionAnalyzer() override = default;
-    
+
     void analyze(const void* executionResult) override;
     std::string getReport() const override;
     void reset() override;
-    
+
     /**
-     * Analyze single technique detection
+     * Analyse whether a technique was detected, given raw EDR alert strings.
      */
     DetectionResult analyzeDetection(const std::string& techniqueId,
                                      const std::vector<std::string>& edrAlerts);
-    
+
     /**
-     * Load detection patterns from file
-     * KARTHIK: Add ML model loading here
+     * Full analysis of a typed ExploitResult from Bipin's module.
+     * Primary integration point called by MLEngine::analyze().
+     */
+    DetectionResult analyzeExploitResult(const edr::exploits::ExploitResult& exploit);
+
+    /**
+     * Load detection patterns from file (future: JSON/YAML rules).
      */
     bool loadPatterns(const std::string& patternFile);
-    
+
     /**
-     * Train detection model
-     * KARTHIK: Implement ML training here
+     * Train statistical model from labelled (alert, detected) pairs.
      */
     bool trainModel(const std::vector<std::pair<std::string, bool>>& trainingData);
 
+    const std::vector<DetectionResult>& getResults() const;
+
 private:
-    // KARTHIK: Add your private members here
-    // std::unique_ptr<MLModel> model_;
-    // std::vector<Pattern> patterns_;
     std::vector<DetectionResult> results_;
 };
 
-/*
- * ┌─────────────────────────────────────────────────────────────────────────┐
- * │                    EVASION SCORER                                       │
- * │                    Success Rate Calculation                              │
- * │                                                                          │
- * │  KARTHIK: Implement evasion scoring logic here                          │
- * │                                                                          │
- * │  Features to implement:                                                  │
- * │    - Calculate evasion success rates                                     │
- * │    - Compare across multiple EDR platforms                               │
- * │    - Generate scoring recommendations                                    │
- * └─────────────────────────────────────────────────────────────────────────┘
- */
 class EvasionScorer : public BaseAnalyzer {
 public:
     EvasionScorer();
     ~EvasionScorer() override = default;
-    
+
     void analyze(const void* executionResult) override;
     std::string getReport() const override;
     void reset() override;
-    
+
     /**
-     * Calculate evasion score for technique
+     * Record a single ExploitResult from Bipin's module.
+     * Primary integration point called by MLEngine::analyze().
+     * @param detected   True if DetectionAnalyzer confirmed EDR detected it.
+     * @param edrName    Name of target EDR product.
+     */
+    void recordExecution(const edr::exploits::ExploitResult& exploit,
+                         bool detected,
+                         const std::string& edrName = "");
+
+    /**
+     * Calculate score from raw counts (fallback / testing).
      */
     EvasionScore calculateScore(const std::string& techniqueId,
-                                 int totalTests,
-                                 int successfulEvasions);
-    
+                                int totalTests,
+                                int successfulEvasions);
+
     /**
-     * Get overall framework effectiveness
+     * Overall session-wide evasion effectiveness (0-1).
      */
     double getOverallEffectiveness() const;
-    
+
     /**
-     * Compare technique effectiveness
+     * Stealth score: fraction of executions that were fully undetected.
+     */
+    double getStealthScore() const;
+
+    /**
+     * Techniques ranked by effectiveness descending.
      */
     std::vector<std::pair<std::string, double>> rankTechniques() const;
 
+    const std::vector<EvasionScore>& getScores() const;
+
 private:
-    // KARTHIK: Add your private members here
-    // std::map<std::string, Statistics> techniqueStats_;
-    std::vector<EvasionScore> scores_;
+    std::vector<EvasionScore>      scores_;
+    std::map<std::string, int>     perTechniqueCount_;
+    std::map<std::string, int>     perEdrtechniqueSuccess_;
 };
 
-/*
- * ┌─────────────────────────────────────────────────────────────────────────┐
- * │                    EVENT CORRELATOR                                     │
- * │                    MITRE ATT&CK Mapping                                 │
- * │                                                                          │
- * │  KARTHIK: Implement event correlation here                              │
- * │                                                                          │
- * │  Features to implement:                                                  │
- * │    - Map events to ATT&CK techniques                                    │
- * │    - Identify attack chains                                              │
- * │    - Correlate related events                                            │
- * └─────────────────────────────────────────────────────────────────────────┘
- */
 class EventCorrelator : public BaseAnalyzer {
 public:
     EventCorrelator();
     ~EventCorrelator() override = default;
-    
+
     void analyze(const void* executionResult) override;
     std::string getReport() const override;
     void reset() override;
-    
+
     /**
-     * Map technique to ATT&CK framework
+     * Correlate a single ExploitResult with ATT&CK framework.
+     * Primary integration point called by MLEngine::analyze().
+     */
+    CorrelationEvent correlateExploitResult(const edr::exploits::ExploitResult& exploit);
+
+    /**
+     * Map technique ID to ATT&CK entry.
      */
     ATTACKMapping mapToATTACK(const std::string& techniqueId);
-    
+
     /**
-     * Correlate events in timeline
+     * Correlate raw event strings.
      */
     std::vector<CorrelationEvent> correlateEvents(
         const std::vector<std::string>& events);
-    
+
     /**
-     * Load ATT&CK database
-     * KARTHIK: Load MITRE data here
+     * Load ATT&CK database from JSON file (STIX-lite format).
      */
     bool loadATTACKDatabase(const std::string& dbPath);
-    
+
     /**
-     * Identify attack chain from events
+     * Identify ordered kill-chain from a list of event strings.
      */
     std::vector<std::string> identifyAttackChain(
         const std::vector<std::string>& events);
 
+    const std::vector<CorrelationEvent>& getCorrelations() const;
+
 private:
-    // KARTHIK: Add your private members here
-    // std::map<std::string, ATTACKMapping> attackDatabase_;
-    std::vector<CorrelationEvent> correlations_;
+    std::vector<CorrelationEvent>            correlations_;
+    std::map<std::string, ATTACKMapping>     attackDatabase_;  ///< runtime ATT&CK DB
 };
 
 /*
@@ -272,41 +267,67 @@ public:
     bool initialize();
     
     /**
-     * Analyze execution results
-     * Called by Jdeep's AgentCore after exploit execution
+     * Analyze a single exploit execution result.
+     * Called by Jdeep's orchestrator after Bipin's ExploitManager returns.
+     *
+     * @param result    ExploitResult from ExploitManager::execute()
+     * @param state     System state snapshot (for DQN reward feedback)
+     * @param nextState System state after execution
      */
-    AnalysisReport analyze(const void* executionResult);
-    
+    AnalysisReport analyze(const edr::exploits::ExploitResult& result,
+                           const SystemState& state,
+                           const SystemState& nextState);
+
     /**
-     * Generate comprehensive report
+     * Ask the DQN to recommend the best next action given system state.
+     * Returns action id 0-7 matching the DESIGN.md action space.
+     * Called by Jdeep's orchestrator BEFORE exploit execution.
      */
-    AnalysisReport generateReport();
-    
+    ActionResponse recommendAction(const SystemState& state,
+                                   const std::vector<int>& validActions = {});
+
     /**
-     * Load ML models
-     * KARTHIK: Implement model loading
+     * Compile session-wide AnalysisReport from all partial results.
+     */
+    AnalysisReport generateReport() const;
+
+    /**
+     * Load ML models from directory (calls Python save/load over bridge).
      */
     bool loadModels(const std::string& modelPath);
-    
+
     /**
-     * Save trained models
+     * Persist ML models to directory.
      */
     bool saveModels(const std::string& modelPath);
-    
+
     /**
-     * Get component references
+     * Access sub-analyser components directly (used by CLI / OutputHandler).
      */
     DetectionAnalyzer& detectionAnalyzer() { return detectionAnalyzer_; }
-    EvasionScorer& evasionScorer() { return evasionScorer_; }
-    EventCorrelator& eventCorrelator() { return eventCorrelator_; }
+    EvasionScorer&     evasionScorer()     { return evasionScorer_;     }
+    EventCorrelator&   eventCorrelator()   { return eventCorrelator_;   }
+    MLBridge&          bridge()            { return bridge_;            }
 
 private:
     DetectionAnalyzer detectionAnalyzer_;
-    EvasionScorer evasionScorer_;
-    EventCorrelator eventCorrelator_;
-    
-    bool initialized_;
+    EvasionScorer     evasionScorer_;
+    EventCorrelator   eventCorrelator_;
+    MLBridge          bridge_;
+
+    bool        initialized_;
     std::string sessionId_;
+    int         episodeCount_  = 0;
+    int         TARGET_SYNC_EVERY = 10;   // sync DQN target network every N episodes
+
+    // Accumulate partial results across a campaign session
+    std::vector<DetectionResult>  sessionDetections_;
+    std::vector<EvasionScore>     sessionEvasionScores_;
+    std::vector<CorrelationEvent> sessionCorrelations_;
+
+    // Persist bridge startup path info
+    std::string pythonExe_;
+    std::string serverScriptPath_;
 };
 
 } // namespace ml

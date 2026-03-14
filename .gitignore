@@ -1,9 +1,10 @@
-# BYOVD drivers
+# BYOVD drivers or BIN files
 *.sys
+*.bin
 
 # initialization + testing scripts
 *.sh
 *.bat
 
 # context files for agent 
-#*.md 
+*.md 

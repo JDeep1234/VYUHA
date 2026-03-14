@@ -10,8 +10,8 @@
 // Windows headers MUST come first — before any project or STL headers
 // to ensure BOOL, DWORD, WINAPI etc. are defined before tlhelp32.h
 #ifdef _WIN32
-#include <tlhelp32.h>
 #include <windows.h>
+#include <tlhelp32.h>
 #endif
 
 #include "agent_core/agent.hpp"

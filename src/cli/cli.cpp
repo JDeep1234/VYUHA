@@ -21,6 +21,7 @@
 
 #ifdef _WIN32
 // NOMINMAX is defined via CMakeLists.txt command line — do not redefine here
+// windows.h MUST come before tlhelp32.h (it defines BOOL, DWORD, WINAPI etc.)
 #include <tlhelp32.h>
 #include <windows.h>
 #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING

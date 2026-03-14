@@ -20,7 +20,7 @@
 #include <sstream>
 
 #ifdef _WIN32
-#define NOMINMAX
+// NOMINMAX is defined via CMakeLists.txt command line — do not redefine here
 #include <tlhelp32.h>
 #include <windows.h>
 #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING

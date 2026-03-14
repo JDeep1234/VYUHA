@@ -7,8 +7,15 @@
  * ASCII-compatible version for MinGW.
  */
 
-#include "cli/cli.hpp"
+// Windows headers MUST come first — before any project or STL headers
+// to ensure BOOL, DWORD, WINAPI etc. are defined before tlhelp32.h
+#ifdef _WIN32
+#include <tlhelp32.h>
+#include <windows.h>
+#endif
+
 #include "agent_core/agent.hpp"
+#include "cli/cli.hpp"
 #include "exploits/exploit_manager.hpp"
 #include "ml_framework/ml_engine.hpp"
 #include <algorithm>
@@ -20,10 +27,6 @@
 #include <sstream>
 
 #ifdef _WIN32
-// NOMINMAX is defined via CMakeLists.txt command line — do not redefine here
-// windows.h MUST come before tlhelp32.h (it defines BOOL, DWORD, WINAPI etc.)
-#include <tlhelp32.h>
-#include <windows.h>
 #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
 #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
 #endif

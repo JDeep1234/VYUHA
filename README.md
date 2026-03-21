@@ -25,7 +25,7 @@ The EDR Adaptive Framework is designed to help security teams:
 | **CLI, Agent Core, Integration** | Jdeep | ✅ Complete | 100% |
 | **BYOVD Exploit (T1068)** | Bipin | ✅ Complete | 100% |
 | **EDR-Freeze Exploit (T1562.001)** | Bipin | ✅ Complete | 100% |
-| **Additional Exploits (2 planned)** | Bipin | 📋 Planned | 0% |
+| **Crystal Palace UDRL (T1055.001)** | Bipin | ✅ Complete | 100% |
 | **ML Framework** | Karthik | ✅ Complete | 100% |
 
 **Overall Framework Status:** ✅ Fully operational — all three modules complete and integrated end-to-end
@@ -34,6 +34,7 @@ The EDR Adaptive Framework is designed to help security teams:
 - ✅ Fully interactive TUI with exploit execution
 - ✅ BYOVD kernel-level EDR process termination (T1068)
 - ✅ EDR-Freeze user-mode process suspension (T1562.001)
+- ✅ Crystal Palace UDRL — 6-layer EDR evasion chain with reflective DLL loading (T1055.001)
 - ✅ Auto-detection of 60+ EDR products
 - ✅ VM snapshot management (Hyper-V, VirtualBox, VMware)
 - ✅ Telemetry and artifact cleanup systems
@@ -68,7 +69,10 @@ EDR-Adaptive-Framework/
 │   ├── integration/
 │   │   └── integration_manager.hpp  # EDR/VM integration [Jdeep]
 │   ├── exploits/
-│   │   └── exploit_manager.hpp # Exploit techniques [BIPIN]
+│   │   ├── exploit_manager.hpp # Exploit techniques [BIPIN]
+│   │   ├── byovd_vulndriver.hpp
+│   │   ├── edr_freeze.hpp
+│   │   └── crystal_palace_loader.hpp
 │   └── ml_framework/
 │       └── ml_engine.hpp       # ML analysis [KARTHIK]
 │
@@ -169,15 +173,7 @@ techniques:
 |--------------|------|--------|--------|-------|
 | **T1068** | **BYOVD - Exploitation for Privilege Escalation** | **Defense Evasion, Privilege Escalation** | **✅ 100%** | **Bipin** |
 | **T1562.001** | **EDR-Freeze - Impair Defenses (Process Suspension)** | **Defense Evasion** | **✅ 100%** | **Bipin** |
-
-### 📋 Planned Techniques (In Development)
-
-| Technique ID | Name | Tactic | Status | Owner |
-|--------------|------|--------|--------|-------|
-| T1055 | Process Injection | Defense Evasion | 📋 Planned | Bipin |
-| T1218.002 | Control Panel | Defense Evasion | 📋 Planned | Bipin |
-| T1218.005 | Mshta | Defense Evasion | 📋 Planned | Bipin |
-| T1574.002 | DLL Side-Loading | Persistence | 📋 Planned | Bipin |
+| **T1055.001** | **Crystal Palace UDRL - Reflective DLL Loading** | **Defense Evasion, Execution** | **✅ 100%** | **Bipin** |
 
 ---
 
@@ -205,14 +201,13 @@ techniques:
 - ✅ `SnapshotManager`: Hyper-V, VirtualBox, VMware support
 - ✅ `CleanModule`: System backup and restore
 
-### 🟠 Bipin's Module (Exploit Scripts) - ✅ 2/4 Techniques Complete
+### 🟠 Bipin's Module (Exploit Scripts) - ✅ 3/3 Techniques Complete
 
 **Location:** `src/exploits/`
 
 **Development Status:**
-- **4 Major Techniques Planned**
-- **2 Techniques Fully Implemented (50%)**
-- **2 Techniques Pending Development**
+- **3 Major Techniques Implemented**
+- **3 Techniques Fully Implemented and Tested (100%)**
 
 #### ✅ Implemented: BYOVD (Bring Your Own Vulnerable Driver) - T1068
 
@@ -367,12 +362,106 @@ techniques:
 
 ---
 
-#### 📋 Planned Techniques (0% - Pending)
+#### ✅ Implemented: Crystal Palace UDRL (Reflective DLL Loading) - T1055.001
 
-1. **Process Injection (T1055)** - Advanced APC injection and hollowing
-2. **Control Panel Execution (T1218.002)** - CPL file abuse via rundll32
-3. **Mshta Execution (T1218.005)** - HTA-based payload delivery
-4. **DLL Side-Loading (T1574.002)** - DLL hijacking (MS Teams, etc.)
+**Status:** 100% Complete and Tested
+
+**Based on:** [KaplaStrike](https://github.com/kapla0011/KaplaStrike) by @kapla  
+**Technical Reference:** [Bypassing EDR in a Crystal Clear Way](https://lorenzomeacci.com/bypassing-edr-in-a-crystal-clear-way)
+
+**Exploit Flow:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Crystal Palace UDRL - 6-Layer EDR Evasion Chain           │
+│  Self-Contained Position-Independent Code (PIC) Blob       │
+└─────────────────────────────────────────────────────────────┘
+
+[PREP] Build PIC blob with KaplaStrike:
+       cd KaplaStrike && make x64
+       ./link spec/loader.spec beacon.dll output.bin
+       ↓ Produces self-contained blob with all evasion layers
+
+[Step 1/3] Read blob from disk
+           ↓ Load output.bin into process memory
+
+[Step 2/3] Allocate executable memory (RW → RX)
+           ↓ VirtualAlloc PAGE_READWRITE, copy blob
+           ↓ VirtualProtect → PAGE_EXECUTE_READ
+           ↓ (Avoids RWX IOC that EDRs flag)
+
+[Step 3/3] Call blob entry point: go()
+           ↓ NtContinue transfers execution (does NOT return)
+           ↓ Process becomes the beacon
+
+── Inside the blob, 6 evasion layers fire automatically: ──
+
+  Layer 1: XOR Payload Decryption
+           ↓ findAppendedDLL() + findMask()
+           ↓ Rolling XOR decrypts beacon DLL in-place
+
+  Layer 2: Module Overloading
+           ↓ NtCreateSection + NtMapViewOfSection
+           ↓ Overwrites legitimate DLL (WsmSvc.dll) in memory
+           ↓ EDR sees backed (legitimate) memory, not shellcode
+
+  Layer 3: .pdata Registration
+           ↓ RtlAddFunctionTable registers exception handlers
+           ↓ Stack unwinding looks legitimate to EDR
+
+  Layer 4: NtContinue Entry Transfer
+           ↓ Synthetic BaseThreadInitThunk stack frames
+           ↓ RtlUserThreadStart spoofed origin
+           ↓ Thread appears to originate from kernel32.dll
+
+  Layer 5: API Call Stack Spoofing (Draugr)
+           ↓ Every Win32 API call proxied via gadget
+           ↓ archiveint.dll gadget masks true caller
+           ↓ EDR stack traces show legitimate DLL frames
+
+  Layer 6: Sleep Masking
+           ↓ IAT-hooked Sleep() function
+           ↓ XOR-encrypts beacon memory during sleep
+           ↓ Periodic memory scans find only encrypted bytes
+
+  ✓ Beacon running with full C2 capability
+  ✓ EDR monitoring shows zero alerts
+```
+
+**Capabilities:**
+- ✅ Evades static signature scanning (XOR-encrypted payload on disk)
+- ✅ Evades memory scanning (Module Overloading + Sleep masking)
+- ✅ Evades stack trace analysis (NtContinue + Draugr spoofing)
+- ✅ No RWX memory pages (RW→RX two-step allocation)
+- ✅ Self-contained PIC blob — zero framework-side evasion code
+- ✅ Works with custom DLL payloads (reverse shells, C2 beacons)
+- ✅ Living-off-the-Land memory components (WsmSvc.dll, archiveint.dll)
+
+**Tested Against:**
+- Microsoft Defender (Windows 10/11) — ✅ Evaded
+- Static analysis — ✅ Evaded (XOR encryption)
+- Memory scanning — ✅ Evaded (Module Overloading)
+
+**Technical Details:**
+- **MITRE ATT&CK:** T1055.001 (Process Injection: DLL Injection via RDLL)
+- **Blob Format:** Crystal Palace PIC (Position-Independent Code)
+- **Sections:** `[loader code] [PICO code] [cobalt_dll (XOR)] [cobalt_mask]`
+- **Entry Point:** `go()` at blob offset 0
+- **Key APIs:** NtCreateSection, NtMapViewOfSection, NtContinue, RtlAddFunctionTable
+- **Sacrificial DLL:** WsmSvc.dll (Module Overloading target)
+- **Spoofing Gadget:** archiveint.dll (Draugr call stack spoofing)
+
+**Evasion Comparison:**
+
+| Attack | Method | Impact | Stealth |
+|--------|--------|--------|--------|
+| **BYOVD** | Kill EDR process via kernel driver | EDR goes offline | ⚠️ SOC sees sensor offline |
+| **EDR-Freeze** | Suspend EDR via WerFault deadlock | EDR frozen temporarily | ⚠️ EDR resumes after release |
+| **Crystal Palace** | Invisible C2 beacon behind 6 evasion layers | Persistent silent access | ✅ EDR stays running, zero alerts |
+
+📖 **Full Documentation:** [CRYSTAL_PALACE_USAGE.md](contexts/CRYSTAL_PALACE_USAGE.md)
+
+---
 
 **How to Add New Exploit:**
 ```cpp

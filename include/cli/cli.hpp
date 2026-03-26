@@ -185,6 +185,7 @@ private:
     // Menu handlers
     void showMainMenu();
     void showTechniqueMenu();
+    void showCampaignMenu();
     void showSnapshotMenu();
     void handleMainMenuChoice(int choice);
     void handleTechniqueMenu();

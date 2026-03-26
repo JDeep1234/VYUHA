@@ -22,6 +22,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -968,46 +969,32 @@ void CLI::handleTechniqueMenu() {
   cmdRun(ctx);
 }
 
-void CLI::handleCampaignMenu() {
+void CLI::showCampaignMenu() {
   std::cout << std::endl;
-  std::cout << colors::BRIGHT_RED << "  +" << std::string(61, '-') << "+"
-            << colors::RESET << std::endl;
+  std::cout << colors::BRIGHT_RED << "  +" << std::string(61, '-') << "+" << colors::RESET << std::endl;
   std::cout << colors::BRIGHT_RED << "  |" << colors::RESET << colors::BOLD
-            << "                   APT CAMPAIGN MODULES                      "
-            << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET
-            << std::endl;
-  std::cout << colors::BRIGHT_RED << "  +" << std::string(61, '-') << "+"
-            << colors::RESET << std::endl;
+            << "                   ADAPTIVE ML CAMPAIGNS                     "
+            << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
+  std::cout << colors::BRIGHT_RED << "  +" << std::string(61, '-') << "+" << colors::RESET << std::endl;
   std::cout << colors::BRIGHT_RED << "  |" << colors::RESET
             << colors::BRIGHT_GREEN << "  [1]" << colors::RESET
-            << " campaigns/apt/cozy_bear   " << colors::DIM
-            << "APT29 - Russia      " << colors::RESET << colors::BRIGHT_RED
-            << "|" << colors::RESET << std::endl;
+            << " Auto-ML Campaign   " << colors::DIM
+            << "(BYOVD, EDR-Freeze, CrystalPalace) " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
   std::cout << colors::BRIGHT_RED << "  |" << colors::RESET
             << colors::BRIGHT_GREEN << "  [2]" << colors::RESET
-            << " campaigns/apt/fancy_bear  " << colors::DIM
-            << "APT28 - Russia      " << colors::RESET << colors::BRIGHT_RED
-            << "|" << colors::RESET << std::endl;
-  std::cout << colors::BRIGHT_RED << "  |" << colors::RESET
-            << colors::BRIGHT_GREEN << "  [3]" << colors::RESET
-            << " campaigns/cybercrime/fin7 " << colors::DIM
-            << "FIN7 - Financial    " << colors::RESET << colors::BRIGHT_RED
-            << "|" << colors::RESET << std::endl;
-  std::cout << colors::BRIGHT_RED << "  |" << colors::RESET
-            << colors::BRIGHT_GREEN << "  [4]" << colors::RESET
-            << " campaigns/custom          " << colors::DIM
-            << "Load from file      " << colors::RESET << colors::BRIGHT_RED
-            << "|" << colors::RESET << std::endl;
-  std::cout << colors::BRIGHT_RED << "  +" << std::string(61, '-') << "+"
-            << colors::RESET << std::endl;
+            << " Custom Campaign    " << colors::DIM
+            << "(Load from local .txt file)        " << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
+  std::cout << colors::BRIGHT_RED << "  +" << std::string(61, '-') << "+" << colors::RESET << std::endl;
   std::cout << colors::BRIGHT_RED << "  |" << colors::RESET
             << colors::BRIGHT_RED << "  [0]" << colors::RESET << " back"
             << colors::DIM << "                                       "
-            << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET
-            << std::endl;
-  std::cout << colors::BRIGHT_RED << "  +" << std::string(61, '-') << "+"
-            << colors::RESET << std::endl;
+            << colors::RESET << colors::BRIGHT_RED << "|" << colors::RESET << std::endl;
+  std::cout << colors::BRIGHT_RED << "  +" << std::string(61, '-') << "+" << colors::RESET << std::endl;
   std::cout << std::endl;
+}
+
+void CLI::handleCampaignMenu() {
+  showCampaignMenu();
 
   std::cout << colors::BRIGHT_RED << "  edr" << colors::RESET
             << colors::BRIGHT_BLUE << " campaign" << colors::RESET
@@ -1020,20 +1007,18 @@ void CLI::handleCampaignMenu() {
   int choice = std::atoi(input.c_str());
   std::string campaignName;
 
-  switch (choice) {
-  case 1:
-    campaignName = "apt29_cozy_bear.yaml";
-    break;
-  case 2:
-    campaignName = "apt28_fancy_bear.yaml";
-    break;
-  case 3:
-    campaignName = "fin7.yaml";
-    break;
-  case 4:
-    campaignName = UI::prompt("Enter campaign file path:");
-    break;
-  default:
+  if (choice == 1) {
+    // Dynamically create a campaign file using ONLY your registered exploits
+    campaignName = "auto_ml_campaign_" + currentSession_ + ".txt";
+    std::ofstream fout(campaignName);
+    fout << "T1068\n";     // BYOVD
+    fout << "T1562.001\n"; // EDR-Freeze
+    fout << "T1055.001\n"; // Crystal Palace
+    fout.close();
+    UI::info("Generated auto-campaign using available exploit modules.");
+  } else if (choice == 2) {
+    campaignName = UI::prompt("Enter campaign file path (.txt):");
+  } else {
     UI::error("Invalid campaign selection");
     return;
   }

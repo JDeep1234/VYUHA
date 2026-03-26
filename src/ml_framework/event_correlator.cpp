@@ -135,7 +135,7 @@ std::string EventCorrelator::getReport() const {
     }
 
     std::ostringstream oss;
-    oss << "MITRE ATT\&CK Correlation Report\n";
+    oss << "MITRE ATT&CK Correlation Report\n";
     oss << std::string(50, '=') << "\n";
 
     for (const auto& c : correlations_) {

@@ -34,6 +34,7 @@ from strategy_selector import DQNAgent
 from behavior_analyzer import EDRBehaviorAnalyzer
 from adaptive_learner  import AdaptiveLearner
 from explainable_ai    import EDRExplainer
+from utils            import FEATURE_NAMES as SHARED_FEATURE_NAMES, STATE_SIZE
 
 import numpy as np
 
@@ -46,30 +47,15 @@ _behavior: EDRBehaviorAnalyzer = None
 _learner: AdaptiveLearner      = None
 _explainer: EDRExplainer       = None
 
-_FEATURE_NAMES = [
-    # EDR (5 one-hot)
-    "edr_defender", "edr_crowdstrike", "edr_carbonblack", "edr_sophos", "edr_other",
-    # EDR state (3)
-    "edr_version", "edr_process_running", "edr_driver_loaded",
-    # System - windows version (4 one-hot)
-    "win10", "win11", "server2019", "server2022",
-    # System config (8)
-    "win_build", "integrity_medium", "integrity_high", "integrity_system",
-    "ppl_protection", "driver_sig_enforcement", "secure_boot", "virtualization",
-    # Previous attempts (12)
-    "last_act_byovd_rtcore", "last_act_byovd_dbutil", "last_act_ppl_bypass",
-    "last_act_handle_dup", "last_act_minifilter", "last_act_callback",
-    "last_act_syscall", "last_act_wait",
-    "last_result_success", "last_result_blocked", "last_result_failed", "last_result_crash",
-    # Counters (2)
-    "consecutive_failures", "time_since_last_action",
-]
-assert len(_FEATURE_NAMES) == 30, f"Expected 30 features, got {len(_FEATURE_NAMES)}"
+_FEATURE_NAMES = list(SHARED_FEATURE_NAMES)
+assert len(_FEATURE_NAMES) == STATE_SIZE, (
+    f"STATE_SIZE mismatch: utils.py={STATE_SIZE}, ml_server feature names={len(_FEATURE_NAMES)}"
+)
 
 def _get_agent() -> DQNAgent:
     global _agent
     if _agent is None:
-        _agent = DQNAgent(state_size=30, action_size=8)
+        _agent = DQNAgent(state_size=STATE_SIZE, action_size=8)
     return _agent
 
 def _get_behavior() -> EDRBehaviorAnalyzer:
@@ -206,7 +192,7 @@ def handle_explain(data: dict) -> dict:
     """Explain why a technique succeeded or failed."""
     technique_id = data.get("technique_id", "")
     edr_name     = data.get("edr_name", "")
-    state        = np.array(data.get("state", [0.0] * 30), dtype=np.float32)
+    state        = np.array(data.get("state", [0.0] * STATE_SIZE), dtype=np.float32)
     outcome      = data.get("outcome", "unknown")
 
     explainer = _get_explainer()
@@ -332,7 +318,7 @@ def self_test():
     print("=== ML Server self-test ===")
 
     # 1. Action selection
-    state = [0.0] * 30
+    state = [0.0] * STATE_SIZE
     state[0] = 1.0   # EDR: Defender running
     state[7] = 1.0   # Kernel driver loaded
     state[14] = 1.0  # High integrity

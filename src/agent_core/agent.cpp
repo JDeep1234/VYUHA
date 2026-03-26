@@ -114,30 +114,34 @@ std::vector<ExecutionResult> AgentCore::runCampaign(
     // 2. Pre-run: build initial valid action index list
     // ------------------------------------------------------------------
     // Map MITRE technique IDs to DQN action indices (see DESIGN.md action space)
+// Inside std::vector<ExecutionResult> AgentCore::runCampaign(...)
+
+    // ------------------------------------------------------------------
+    // 2. Pre-run: build initial valid action index list
+    // ------------------------------------------------------------------
+    // Strict mapping to Python action space size of 3
     static const std::map<std::string, int> TECH_TO_ACTION = {
-        {"T1068",      0},  // BYOVD_RTCore
-        {"T1562.001",  1},  // BYOVD_DBUtil
-        {"T1134",      2},  // PPL_Bypass
-        {"T1055.001",  3},  // Handle_Duplication
-        {"T1574.002",  4},  // Minifilter_Unload
-        {"T1562.006",  5},  // Callback_Removal
-        {"T1055",      6},  // Direct_Syscall / Process Injection
-        {"T1218.002",  7},  // Wait_Observe / Signed Binary Proxy
+        {"T1068",      0},  // Maps to "BYOVD_VulnDriver" in Python
+        {"T1562.001",  1},  // Maps to "EDR_Freeze_Thread" in Python
+        {"T1055.001",  2}   // Maps to "Crystal_Palace_Loader" in Python
     };
 
     std::vector<int> validActions;
     for (const auto& t : techniques) {
-        auto it = TECH_TO_ACTION.find(t);
-        if (it != TECH_TO_ACTION.end()) {
-            validActions.push_back(it->second);
+        if (exploits.hasTechnique(t)) { 
+            auto it = TECH_TO_ACTION.find(t);
+            if (it != TECH_TO_ACTION.end()) {
+                validActions.push_back(it->second);
+            }
         }
     }
-    // If no mapping found, allow all actions
+    
+    // Safety check: if an empty validActions is sent, ML bridge might crash
     if (validActions.empty()) {
-        for (int i = 0; i < 8; ++i) validActions.push_back(i);
+        std::cerr << "[AgentCore] ERROR: No valid mapped actions found for ML." << std::endl;
+        return results;
     }
-
-    // Action-index back to technique ID (reverse map)
+        // Action-index back to technique ID (reverse map)
     std::map<int, std::string> actionToTech;
     for (const auto& [tech, idx] : TECH_TO_ACTION) {
         actionToTech[idx] = tech;

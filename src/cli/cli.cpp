@@ -752,6 +752,11 @@ void CLI::showTechniqueMenu() {
             << " exploit/injection/crystal_palace " << colors::DIM
             << "T1055.001  " << colors::RESET << colors::BRIGHT_RED << "|"
             << colors::RESET << std::endl;
+  std::cout << colors::BRIGHT_RED << "  |" << colors::RESET
+            << colors::BRIGHT_GREEN << "  [4]" << colors::RESET
+            << " exploit/evasion/syswhispers4     " << colors::DIM
+            << "T1106      " << colors::RESET << colors::BRIGHT_RED << "|"
+            << colors::RESET << std::endl;
   std::cout << colors::BRIGHT_RED << "  +" << std::string(61, '-') << "+"
             << colors::RESET << std::endl;
   std::cout << colors::BRIGHT_RED << "  |" << colors::RESET
@@ -957,8 +962,11 @@ void CLI::handleTechniqueMenu() {
   case 3:
     techniqueId = "T1055.001";
     break;
+  case 4:
+    techniqueId = "T1106";
+    break;
   default:
-    UI::error("Invalid selection. Choose from available exploits (1-3).");
+    UI::error("Invalid selection. Choose from available exploits (1-4).");
     std::cout << std::endl;
     return;
   }

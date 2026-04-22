@@ -131,7 +131,7 @@ bool OutputHandler::exportHTML(const std::string& filepath,
     file << R"(<!DOCTYPE html>
 <html>
 <head>
-    <title>EDR Framework - Analysis Report</title>
+    <title>VYUHA - Analysis Report</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; background: #1a1a2e; color: #eee; }
         h1 { color: #00d4ff; }
@@ -146,7 +146,7 @@ bool OutputHandler::exportHTML(const std::string& filepath,
 </head>
 <body>
     <div class="header">
-        <h1>EDR Adaptive Framework - Analysis Report</h1>
+        <h1>VYUHA - Analysis Report</h1>
         <p>Team: Jdeep | Bipin | Karthik</p>
     </div>
     

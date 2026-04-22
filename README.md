@@ -1,4 +1,4 @@
-# 🛡️ EDR Adaptive Framework
+# 🛡️ VYUHA: Cross-Layer EDR Kill-Chain Evasion via Deep Reinforcement Learning-Guided Adversarial Orchestration
 
 > **Advanced APT Simulation & EDR Evasion Assessment Platform**
 
@@ -9,7 +9,7 @@ A comprehensive C++ framework for testing and evaluating Endpoint Detection and 
 
 ## 🎯 Overview
 
-The EDR Adaptive Framework is designed to help security teams:
+The VYUHA framework is designed to help security teams:
 
 - **Assess EDR Effectiveness**: Test how well your EDR solution detects various attack techniques
 - **Simulate APT Campaigns**: Execute realistic attack chains mapped to the Cyber Kill Chain

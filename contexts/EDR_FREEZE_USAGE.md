@@ -350,7 +350,7 @@ CreateProcessW(..., CREATE_PROTECTED_PROCESS, ...);
 ## Author Notes
 
 **Implementation by:** BIPIN  
-**Framework:** EDR-Adaptive-Framework  
+**Framework:** VYUHA (EDR-Adaptive-Framework)  
 **Date:** February 2026  
 **Tested on:** Windows 10 22H2  
 

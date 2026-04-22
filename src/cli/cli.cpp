@@ -103,12 +103,12 @@ std::vector<std::string> getRunningProcesses() {
   if (hSnapshot == INVALID_HANDLE_VALUE)
     return processes;
 
-  PROCESSENTRY32 pe32;
-  pe32.dwSize = sizeof(PROCESSENTRY32);
+  PROCESSENTRY32W pe32;
+  pe32.dwSize = sizeof(PROCESSENTRY32W);
 
-  if (Process32First(hSnapshot, &pe32)) {
+  if (Process32FirstW(hSnapshot, &pe32)) {
     do {
-      // Convert WCHAR to std::string
+      // Convert WCHAR process name to UTF-8 std::string
       char procNameBuf[260];
       WideCharToMultiByte(CP_UTF8, 0, pe32.szExeFile, -1, procNameBuf,
                           sizeof(procNameBuf), NULL, NULL);
@@ -116,7 +116,7 @@ std::vector<std::string> getRunningProcesses() {
       std::transform(procName.begin(), procName.end(), procName.begin(),
                      ::tolower);
       processes.push_back(procName);
-    } while (Process32Next(hSnapshot, &pe32));
+    } while (Process32NextW(hSnapshot, &pe32));
   }
   CloseHandle(hSnapshot);
   return processes;
@@ -139,11 +139,11 @@ bool isProcessRunning(const std::string &processName,
 // Detect Windows Defender status
 std::pair<std::string, std::string> detectWindowsDefender() {
   // Check if Windows Defender service is running
-  SC_HANDLE scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
+  SC_HANDLE scm = OpenSCManagerW(NULL, NULL, SC_MANAGER_CONNECT);
   if (!scm)
     return {"Unknown", "Cannot query services"};
 
-  SC_HANDLE service = OpenService(scm, L"WinDefend", SERVICE_QUERY_STATUS);
+  SC_HANDLE service = OpenServiceW(scm, L"WinDefend", SERVICE_QUERY_STATUS);
   if (!service) {
     CloseServiceHandle(scm);
     return {"Not Installed", "-"};
@@ -552,16 +552,18 @@ void UI::banner() {
   // Metasploit-style hacker banner
   std::cout << std::endl;
   std::cout << colors::BRIGHT_RED << R"(
-       _____ ____  ____     _____ ____      _    __  __ _______        _____  ____  _  __
-      | ____|  _ \|  _ \   |  ___|  _ \    / \  |  \/  | ____\ \      / / _ \|  _ \| |/ /
-      |  _| | | | | |_) |  | |_  | |_) |  / _ \ | |\/| |  _|  \ \ /\ / / | | | |_) | ' / 
-      | |___| |_| |  _ <   |  _| |  _ <  / ___ \| |  | | |___  \ V  V /| |_| |  _ <| . \ 
-      |_____|____/|_| \_\  |_|   |_| \_\/_/   \_\_|  |_|_____|  \_/\_/  \___/|_| \_\_|\_\
-                                                                                         
+
+ ██╗   ██╗ ██╗   ██╗ ██╗   ██╗ ██╗  ██╗  █████╗ 
+ ██║   ██║ ╚██╗ ██╔╝ ██║   ██║ ██║  ██║ ██╔══██╗
+ ██║   ██║  ╚████╔╝  ██║   ██║ ███████║ ███████║
+ ╚██╗ ██╔╝   ╚██╔╝   ██║   ██║ ██╔══██║ ██╔══██║
+  ╚████╔╝     ██║    ╚██████╔╝ ██║  ██║ ██║  ██║
+   ╚═══╝      ╚═╝     ╚═════╝  ╚═╝  ╚═╝ ╚═╝  ╚═╝
+  
 )" << colors::RESET;
 
   std::cout << colors::BRIGHT_BLUE << R"(
-                        =[ EDR Evasion & APT Simulation Framework ]=
+                        =[ VYUHA: Cross-Layer EDR Kill-Chain Evasion ]=
 )" << colors::RESET;
 
   // Metasploit-style stats
@@ -812,7 +814,7 @@ void CLI::showWelcome() { UI::banner(); }
 void CLI::showHelp(const CommandContext &ctx) { showMainMenu(); }
 
 void CLI::printPrompt() {
-  std::cout << colors::BRIGHT_RED << "edr" << colors::RESET
+  std::cout << colors::BRIGHT_RED << "vyuha" << colors::RESET
             << colors::BRIGHT_BLUE << " exploit" << colors::RESET << colors::DIM
             << "(" << colors::RESET << colors::BRIGHT_GREEN << "*"
             << colors::RESET << colors::DIM << ") > " << colors::RESET;
@@ -937,7 +939,7 @@ void CLI::handleMainMenuChoice(int choice) {
 void CLI::handleTechniqueMenu() {
   showTechniqueMenu();
 
-  std::cout << colors::BRIGHT_RED << "  edr" << colors::RESET
+  std::cout << colors::BRIGHT_RED << "  vyuha" << colors::RESET
             << colors::BRIGHT_BLUE << " exploit" << colors::RESET << colors::DIM
             << "(*) > " << colors::RESET;
   std::string input = readLine();
@@ -996,7 +998,7 @@ void CLI::showCampaignMenu() {
 void CLI::handleCampaignMenu() {
   showCampaignMenu();
 
-  std::cout << colors::BRIGHT_RED << "  edr" << colors::RESET
+  std::cout << colors::BRIGHT_RED << "  vyuha" << colors::RESET
             << colors::BRIGHT_BLUE << " campaign" << colors::RESET
             << colors::DIM << "(*) > " << colors::RESET;
   std::string input = readLine();
@@ -1031,7 +1033,7 @@ void CLI::handleCampaignMenu() {
 void CLI::handleSnapshotMenu() {
   showSnapshotMenu();
 
-  std::cout << colors::BRIGHT_RED << "  edr" << colors::RESET
+  std::cout << colors::BRIGHT_RED << "  vyuha" << colors::RESET
             << colors::BRIGHT_BLUE << " snapshot" << colors::RESET
             << colors::DIM << "(*) > " << colors::RESET;
   std::string input = readLine();
@@ -1096,7 +1098,7 @@ void CLI::runInteractive() {
 
   std::cout << std::endl;
   std::cout << colors::BRIGHT_RED << "[*]" << colors::RESET
-            << " Exiting EDR Framework..." << std::endl;
+            << " Exiting VYUHA..." << std::endl;
   std::cout << colors::DIM << "    Remember to clean up your traces!"
             << colors::RESET << std::endl;
 }
@@ -1117,7 +1119,7 @@ int CLI::runCommand(int argc, char *argv[]) {
   }
 
   if (arg == "--version" || arg == "-v") {
-    std::cout << colors::BRIGHT_RED << "EDR Framework" << colors::RESET
+    std::cout << colors::BRIGHT_RED << "VYUHA" << colors::RESET
               << " - APT Simulation & EDR Evasion" << std::endl;
     return 0;
   }
@@ -1553,7 +1555,7 @@ void CLI::cmdClean(const CommandContext &ctx) {
             << colors::RESET << std::endl;
   std::cout << std::endl;
 
-  std::cout << colors::BRIGHT_RED << "  edr" << colors::RESET
+  std::cout << colors::BRIGHT_RED << "  vyuha" << colors::RESET
             << colors::BRIGHT_BLUE << " clearev" << colors::RESET << colors::DIM
             << "(*) > " << colors::RESET;
   std::string input = readLine();

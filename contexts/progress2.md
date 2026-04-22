@@ -1,4 +1,4 @@
-# EDR-Adaptive-Framework Progress Report #2
+# VYUHA Progress Report #2
 **Date:** February 13, 2026  
 **Session:** Post-EDR-Freeze Integration & Code Cleanup  
 **Previous Session:** progress1.md (BYOVD implementation)
@@ -295,7 +295,7 @@ cd build/Release
 ### Main Menu
 ```
   ╔════════════════════════════════════════════════════════╗
-  ║         EDR ADAPTIVE ATTACK FRAMEWORK (EAAF)           ║
+  ║                       VYUHA                            ║
   ╚════════════════════════════════════════════════════════╝
   
   [1] use exploit    - Execute ATT&CK techniques

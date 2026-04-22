@@ -1,4 +1,4 @@
-# EDR Adaptive Framework - C++ Build Configuration
+# VYUHA: Cross-Layer EDR Kill-Chain Evasion via Deep Reinforcement Learning-Guided Adversarial Orchestration - C++ Build Configuration
 # =================================================
 # Build: mkdir build && cd build && cmake .. && cmake --build .
 
@@ -94,7 +94,7 @@ if(BUILD_TESTS)
 endif()
 
 message(STATUS "")
-message(STATUS "=== EDR Adaptive Framework v${PROJECT_VERSION} ===")
+message(STATUS "=== VYUHA v${PROJECT_VERSION} ===")
 message(STATUS "Team Members:")
 message(STATUS "  - Jdeep:   CLI, Agent Core, Integration")
 message(STATUS "  - Bipin:   Exploit Scripts Module")

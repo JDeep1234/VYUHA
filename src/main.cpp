@@ -1,5 +1,5 @@
 /*
- * EDR Adaptive Framework - Main Entry Point
+ * VYUHA: Cross-Layer EDR Kill-Chain Evasion via Deep Reinforcement Learning-Guided Adversarial Orchestration - Main Entry Point
  * ==========================================
  * 
  * Authors:

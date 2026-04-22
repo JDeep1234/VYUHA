@@ -22,7 +22,7 @@ VYUHA helps security teams:
 | Component | Status | Notes |
 |-----------|--------|-------|
 | Core Framework (CLI, Agent Core, Integration) | Complete | Stable interactive workflow and orchestration |
-| Exploit Modules | Active | BYOVD and EDR-Freeze implemented, additional techniques planned |
+| Exploit Modules | Active | BYOVD, EDR-Freeze, and Crystal Palace implemented; additional techniques planned |
 | ML Framework | Complete | Adaptive recommendation and analysis pipeline integrated |
 
 Overall status: Operational core with extensible module architecture.
@@ -152,12 +152,13 @@ techniques:
 |--------------|------|--------|--------|
 | T1068 | BYOVD - Exploitation for Privilege Escalation | Defense Evasion, Privilege Escalation | Implemented |
 | T1562.001 | EDR-Freeze - Impair Defenses (Process Suspension) | Defense Evasion | Implemented |
+| T1055.001 | Crystal Palace UDRL - Dynamic-link Library Injection | Defense Evasion | Implemented |
 
 ### Planned Techniques
 
 | Technique ID | Name | Tactic | Status |
 |--------------|------|--------|--------|
-| T1055 | Process Injection | Defense Evasion | Planned |
+| T1055 | Process Injection (additional variants) | Defense Evasion | Planned |
 | T1218.002 | Control Panel | Defense Evasion | Planned |
 | T1218.005 | Mshta | Defense Evasion | Planned |
 | T1574.002 | DLL Side-Loading | Persistence | Planned |
@@ -181,6 +182,7 @@ Status: Implemented techniques plus extensible interface for additional techniqu
 Implemented:
 - BYOVD (T1068)
 - EDR-Freeze (T1562.001)
+- Crystal Palace UDRL (T1055.001)
 
 Planned:
 - Process Injection (T1055)
@@ -199,6 +201,12 @@ Planned:
 - User-mode process suspension workflow
 - Configurable freeze duration and target selection
 - Reversible execution path with cleanup support
+
+#### Crystal Palace UDRL (T1055.001)
+
+- Reflective loader workflow for staged payload execution
+- Configurable blob path and execution options
+- Integrated into the same exploit manager and campaign flow
 
 ### ML Framework
 

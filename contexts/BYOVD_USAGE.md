@@ -329,6 +329,6 @@ Always obtain written authorization before testing.
 
 ---
 
-**Project:** EDR-Adaptive-Framework  
+**Project:** VYUHA (EDR-Adaptive-Framework)  
 **Component:** Exploits Module (Bipin)  
 **Date:** February 2026

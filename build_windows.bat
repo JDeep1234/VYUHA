@@ -1,13 +1,13 @@
 @echo off
 REM ============================================================================
-REM EDR Adaptive Framework - Windows Build Script
+REM VYUHA: Cross-Layer EDR Kill-Chain Evasion via Deep Reinforcement Learning-Guided Adversarial Orchestration - Windows Build Script
 REM ============================================================================
 REM Run this on Windows 10 VM with Visual Studio 2022 installed
 REM ============================================================================
 
 echo.
 echo ========================================
-echo EDR Adaptive Framework - Build Script
+echo VYUHA - Build Script
 echo ========================================
 echo.
 

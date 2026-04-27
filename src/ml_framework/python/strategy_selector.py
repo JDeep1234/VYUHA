@@ -1,7 +1,8 @@
 """
 Strategy Selector - Reinforcement Learning Agent for EDR Termination
 Author: Karthik
-Description: DQN agent that selects optimal attack techniques based on system state
+Description: DQN agent that selects optimal attack techniques based on system state.
+             SYNCED with ExploitManager (T1068, T1562.001, T1055.001).
 """
 
 import torch
@@ -13,11 +14,7 @@ import random
 import json
 from pathlib import Path
 
-
 class DQNNetwork(nn.Module):
-    """
-    Deep Q-Network: Maps state -> Q-values for each action
-    """
     def __init__(self, state_size, action_size, hidden_size=128):
         super(DQNNetwork, self).__init__()
         self.network = nn.Sequential(
@@ -33,193 +30,96 @@ class DQNNetwork(nn.Module):
     def forward(self, x):
         return self.network(x)
 
-
 class DQNAgent:
-    """
-    Deep Q-Network Agent for attack strategy selection
-    
-    State Space (30 features):
-        - EDR info: product, version, running, driver loaded
-        - System: Windows version, integrity level, PPL, DSE, Secure Boot
-        - History: previous actions, results, failure count
-    
-    Action Space (8 actions):
-        0: BYOVD_RTCore
-        1: BYOVD_DBUtil
-        2: PPL_Bypass
-        3: Handle_Duplication
-        4: Minifilter_Unload
-        5: Callback_Removal
-        6: Direct_Syscall
-        7: Wait_Observe
-    
-    Reward Function:
-        +100: EDR terminated
-        +75:  Telemetry silenced
-        +50:  Partial success
-        0:    No change
-        -50:  Detected
-        -75:  Blocked
-        -100: System crash
-    """
-    
-    def __init__(self, state_size=30, action_size=8, learning_rate=0.001):
+    # Inside class DQNAgent:
+    def __init__(self, state_size=30, action_size=3, learning_rate=0.001): # Changed to 3
         self.state_size = state_size
         self.action_size = action_size
-        
-        # Hyperparameters
-        self.gamma = 0.95           # Discount factor
-        self.epsilon = 1.0          # Exploration rate
-        self.epsilon_min = 0.01     # Minimum exploration
-        self.epsilon_decay = 0.995  # Exploration decay
+        self.gamma = 0.95
+        self.epsilon = 1.0
+        self.epsilon_min = 0.01
+        self.epsilon_decay = 0.995
         self.learning_rate = learning_rate
         self.batch_size = 32
-        
-        # Replay memory
         self.memory = deque(maxlen=10000)
         
-        # Q-Networks
         self.policy_net = DQNNetwork(state_size, action_size)
         self.target_net = DQNNetwork(state_size, action_size)
         self.target_net.load_state_dict(self.policy_net.state_dict())
-        self.target_net.eval()  # Target network never trains directly
+        self.target_net.eval()
         
-        # Optimizer
         self.optimizer = optim.Adam(self.policy_net.parameters(), lr=learning_rate)
         
-        # Action mapping
+        # STRICT MAPPING: Only your 3 actual C++ exploits
         self.action_names = [
-            "BYOVD_RTCore",
-            "BYOVD_DBUtil", 
-            "PPL_Bypass",
-            "Handle_Duplication",
-            "Minifilter_Unload",
-            "Callback_Removal",
-            "Direct_Syscall",
-            "Wait_Observe"
+            "BYOVD_VulnDriver",      # Action 0
+            "EDR_Freeze_Thread",     # Action 1
+            "Crystal_Palace_Loader", # Action 2
         ]
     
     def select_action(self, state, valid_actions=None):
-        """
-        Select action using epsilon-greedy policy
-        
-        Args:
-            state: Current system state (numpy array or list)
-            valid_actions: Optional list of valid action indices
-        
-        Returns:
-            action_id: Integer action index
-        """
-        # Exploration: random action
         if np.random.rand() <= self.epsilon:
             if valid_actions:
                 return random.choice(valid_actions)
             return random.randint(0, self.action_size - 1)
         
-        # Exploitation: best predicted action
         with torch.no_grad():
             state_tensor = torch.FloatTensor(state).unsqueeze(0)
             q_values = self.policy_net(state_tensor)
-            
             if valid_actions:
-                # Mask invalid actions
                 q_values_np = q_values.numpy()[0]
                 valid_q = {a: q_values_np[a] for a in valid_actions}
                 return max(valid_q, key=valid_q.get)
-            
             return torch.argmax(q_values).item()
-    
+
     def remember(self, state, action, reward, next_state, done):
-        """
-        Store experience in replay buffer
-        
-        Args:
-            state: Current state
-            action: Action taken
-            reward: Reward received
-            next_state: Resulting state
-            done: Episode terminated?
-        """
         self.memory.append((state, action, reward, next_state, done))
-    
+
     def replay(self, batch_size=None):
-        """
-        Train on random batch from memory (Experience Replay)
+        if batch_size is None: batch_size = self.batch_size
+        if len(self.memory) < batch_size: return None
         
-        Args:
-            batch_size: Number of samples to train on
-        """
-        if batch_size is None:
-            batch_size = self.batch_size
-        
-        if len(self.memory) < batch_size:
-            return  # Not enough samples yet
-        
-        # Sample random minibatch
         minibatch = random.sample(self.memory, batch_size)
-        
-        # Prepare tensors
         states = torch.FloatTensor([e[0] for e in minibatch])
         actions = torch.LongTensor([e[1] for e in minibatch])
         rewards = torch.FloatTensor([e[2] for e in minibatch])
         next_states = torch.FloatTensor([e[3] for e in minibatch])
         dones = torch.FloatTensor([e[4] for e in minibatch])
         
-        # Current Q-values (from policy network)
         current_q = self.policy_net(states).gather(1, actions.unsqueeze(1))
-        
-        # Target Q-values (from target network)
         with torch.no_grad():
             max_next_q = self.target_net(next_states).max(1)[0]
             target_q = rewards + (1 - dones) * self.gamma * max_next_q
         
-        # Compute loss
         loss = nn.MSELoss()(current_q.squeeze(), target_q)
-        
-        # Backpropagation
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
         
-        # Decay exploration rate
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
-        
         return loss.item()
-    
+
     def update_target_network(self):
-        """
-        Copy weights from policy network to target network
-        Call this every N episodes (e.g., 10)
-        """
         self.target_net.load_state_dict(self.policy_net.state_dict())
-    
+
     def save(self, filepath):
-        """Save model checkpoint"""
         torch.save({
             'policy_net_state': self.policy_net.state_dict(),
             'target_net_state': self.target_net.state_dict(),
             'optimizer_state': self.optimizer.state_dict(),
-            'epsilon': self.epsilon,
-            'memory': list(self.memory)[-1000:]  # Save last 1000 experiences
+            'epsilon': self.epsilon
         }, filepath)
-        print(f"✓ Model saved to {filepath}")
-    
+
     def load(self, filepath):
-        """Load model checkpoint"""
         checkpoint = torch.load(filepath)
         self.policy_net.load_state_dict(checkpoint['policy_net_state'])
         self.target_net.load_state_dict(checkpoint['target_net_state'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state'])
         self.epsilon = checkpoint['epsilon']
-        if 'memory' in checkpoint:
-            self.memory = deque(checkpoint['memory'], maxlen=10000)
-        print(f"✓ Model loaded from {filepath}")
-    
-    def get_action_name(self, action_id):
-        """Convert action ID to technique name"""
-        return self.action_names[action_id]
 
+    def get_action_name(self, action_id):
+        return self.action_names[action_id]
 
 # ============================================================================
 # TESTING / DEMO CODE

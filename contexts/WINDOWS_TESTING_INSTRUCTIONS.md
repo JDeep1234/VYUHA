@@ -140,7 +140,7 @@ build_windows.bat
 **Expected output:**
 ```
 ========================================
-EDR Adaptive Framework - Build Script
+VYUHA - Build Script
 ========================================
 
 [+] Running as Administrator
@@ -278,7 +278,7 @@ edr_framework.exe
 The framework should display a text-based menu:
 ```
 ========================================
-   EDR Adaptive Framework v2.0
+   VYUHA v2.0
 ========================================
 
 Available Techniques:

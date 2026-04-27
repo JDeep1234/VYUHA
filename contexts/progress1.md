@@ -1,4 +1,4 @@
-# EDR Adaptive Framework - Session 1 Progress Report
+# VYUHA - Session 1 Progress Report
 **Date:** February 10, 2026  
 **Session:** Context Linking Document for Next Chat  
 **Author:** Bipin  
@@ -355,7 +355,7 @@ VBoxManage startvm "windows10"
 ### High-Level Structure
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                 EDR ADAPTIVE FRAMEWORK                      │
+│                           VYUHA                              │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  ┌──────────┐      ┌─────────────┐      ┌──────────────┐   │
@@ -685,7 +685,7 @@ You ended Session 1 asking about driver choice. The next session should START wi
 cd /home/bipin/german-project/AV-EDR-Killer
 cat README.md
 
-# Build EDR framework
+# Build VYUHA framework
 cd /home/bipin/german-project/EDR-Adaptive-Framework
 mkdir -p build && cd build
 cmake ..

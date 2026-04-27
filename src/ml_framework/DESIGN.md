@@ -1,7 +1,7 @@
 # 🧠 ML Framework - Design Documentation
 
 **Author:** Karthik  
-**Project:** EDR Adaptive Framework - ML-Driven Attack Strategy Selection  
+**Project:** VYUHA - ML-Driven Attack Strategy Selection  
 **Last Updated:** February 7, 2026
 
 ---

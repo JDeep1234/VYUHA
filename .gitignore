@@ -5,6 +5,14 @@
 # initialization + testing scripts
 *.sh
 *.bat
-
+build/
 # context files for agent 
 contexts/*.md 
+pycache/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.pth
+models/
+auto_ml_campaign_*.txt

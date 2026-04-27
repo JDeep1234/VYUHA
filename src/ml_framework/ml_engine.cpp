@@ -195,10 +195,10 @@ AnalysisReport MLEngine::analyze(
 ActionResponse MLEngine::recommendAction(const SystemState& state,
                                           const std::vector<int>& validActions) {
     if (!bridge_.isRunning()) {
-        // Bridge offline: return default no-op action (index 7 = Wait_Observe)
+        // Bridge offline: return default no-op action
         ActionResponse fallback;
-        fallback.actionId   = 7;
-        fallback.actionName = "Wait_Observe";
+        fallback.actionId   = -1;
+        fallback.actionName = "Offline";
         fallback.valid      = false;
         return fallback;
     }

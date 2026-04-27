@@ -22,20 +22,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-# Feature names must match the 30-feature state vector in ml_server.py / ml_bridge.hpp
-FEATURE_NAMES = [
-    "edr_defender", "edr_crowdstrike", "edr_carbonblack", "edr_sophos", "edr_other",
-    "edr_version", "edr_process_running", "edr_driver_loaded",
-    "win10", "win11", "server2019", "server2022",
-    "win_build", "integrity_medium", "integrity_high", "integrity_system",
-    "ppl_protection", "driver_sig_enforcement", "secure_boot", "virtualization",
-    "last_act_byovd_rtcore", "last_act_byovd_dbutil", "last_act_ppl_bypass",
-    "last_act_handle_dup", "last_act_minifilter", "last_act_callback",
-    "last_act_syscall", "last_act_wait",
-    "last_result_success", "last_result_blocked", "last_result_failed",
-    "last_result_crash",
-    "consecutive_failures", "time_since_last_action",
-]
+from utils import FEATURE_NAMES
 
 # Feature groups for narrative generation
 _PROTECTION_FEATURES = {
@@ -59,7 +46,7 @@ class EDRExplainer:
 
     Args:
         model:         A DQNAgent whose policy_net will be explained.
-        feature_names: List of 30 feature name strings.
+        feature_names: List of 26 feature name strings.
     """
 
     def __init__(self, model, feature_names: Optional[List[str]] = None):
@@ -96,7 +83,7 @@ class EDRExplainer:
         Args:
             technique_id: MITRE ATT&CK technique ID (e.g. "T1068")
             edr_name:     EDR product name
-            state:        30-element state vector at time of execution
+            state:        26-element state vector at time of execution
             outcome:      One of "success", "blocked", "failed", "detected", "crash"
 
         Returns:
@@ -313,11 +300,11 @@ if __name__ == "__main__":
     sys.path.insert(0, str(Path(__file__).parent))
     from strategy_selector import DQNAgent
 
-    agent    = DQNAgent(state_size=30, action_size=8)
+    agent    = DQNAgent(state_size=26, action_size=4)
     explainer = EDRExplainer(model=agent, feature_names=FEATURE_NAMES)
 
     # Simulate a "blocked" state (PPL on, DSE on, EDR running)
-    state = np.zeros(30, dtype=np.float32)
+    state = np.zeros(26, dtype=np.float32)
     state[0]  = 1.0   # Defender
     state[6]  = 1.0   # EDR process running
     state[7]  = 1.0   # kernel driver loaded
@@ -326,7 +313,7 @@ if __name__ == "__main__":
 
     # Add some background samples
     for _ in range(15):
-        bg = np.random.rand(30).astype(np.float32)
+        bg = np.random.rand(26).astype(np.float32)
         explainer.add_background_sample(bg)
 
     print("[1] explain_failure()...")

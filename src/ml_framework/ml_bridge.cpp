@@ -41,42 +41,52 @@ namespace ml {
 
 std::vector<float> SystemState::toVector() const {
   std::vector<float> v;
-  v.reserve(30);
+  v.reserve(26);
 
-  // EDR product one-hot (5)
+  // [0-4] EDR product one-hot
   for (float f : edrProduct)
     v.push_back(f);
-  // EDR state (3)
-  v.push_back(edrVersion);
+    
+  // [5-7] EDR runtime
   v.push_back(edrProcessRunning);
   v.push_back(edrDriverLoaded);
-  // Windows version one-hot (4)
-  for (float f : windowsVersion)
-    v.push_back(f);
-  // System config (8)
-  v.push_back(windowsBuild);
-  for (float f : integrityLevel)
-    v.push_back(f);
+  v.push_back(0.f); // edr_crashed not tracked, default to 0
+
+  // [8-11] Windows version
+  v.push_back(windowsVersion[0]); // Win10
+  v.push_back(windowsVersion[1]); // Win11
+  v.push_back(windowsVersion[2]); // Server
+  v.push_back(windowsVersion[3]); // Other
+
+  // [12-19] System Config
   v.push_back(pplProtection);
   v.push_back(driverSigEnforcement);
   v.push_back(secureBoot);
   v.push_back(virtualization);
   v.push_back(antimalwareLight);
-  // Previous actions (8 one-hot)
+  v.push_back(integrityLevel[1]); // High
+  v.push_back(integrityLevel[2]); // System
+  v.push_back(integrityLevel[0]); // Medium
+
+  // [20-23] Previous actions
   for (float f : lastAction)
     v.push_back(f);
-  // Previous result (4 one-hot)
-  for (float f : lastActionResult)
-    v.push_back(f);
-  // Counters (2)
-  v.push_back(consecutiveFailures);
-  v.push_back(timeSinceLastAction);
 
-  // Ensure exactly 30 elements
-  while (v.size() < 30)
+  // [24-25] Counters
+  float resultNorm = -0.5f;
+  if (lastActionResult[0] > 0.5f) resultNorm = 1.0f;
+  else if (lastActionResult[1] > 0.5f) resultNorm = 0.0f;
+  else if (lastActionResult[2] > 0.5f) resultNorm = -0.25f;
+  else if (lastActionResult[3] > 0.5f) resultNorm = -1.0f;
+  v.push_back(resultNorm);
+
+  v.push_back(consecutiveFailures);
+
+  // Ensure exactly 26 elements
+  while (v.size() < 26)
     v.push_back(0.f);
-  if (v.size() > 30)
-    v.resize(30);
+  if (v.size() > 26)
+    v.resize(26);
   return v;
 }
 
@@ -134,7 +144,7 @@ SystemState SystemState::fromContext(const std::string &edrName,
   s.antimalwareLight = elam ? 1.f : 0.f;
 
   // Last action one-hot
-  if (lastActionId >= 0 && lastActionId < 8)
+  if (lastActionId >= 0 && lastActionId < 4)
     s.lastAction[lastActionId] = 1.f;
 
   // Last result one-hot

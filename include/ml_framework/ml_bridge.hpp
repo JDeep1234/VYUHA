@@ -64,7 +64,7 @@ struct SystemState {
     float antimalwareLight    = 0.f;
 
     // Previous Attempts (indices 18-29)
-    float lastAction[8]       = {};   // one-hot: last technique tried
+    float lastAction[4]       = {};   // one-hot: last technique tried
     float lastActionResult[4] = {};   // one-hot: Success/Blocked/Failed/Crash
     float consecutiveFailures = 0.f;  // normalised (0-1)
     float timeSinceLastAction = 0.f;  // normalised (0-1)

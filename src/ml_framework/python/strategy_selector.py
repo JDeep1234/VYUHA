@@ -32,7 +32,7 @@ class DQNNetwork(nn.Module):
 
 class DQNAgent:
     # Inside class DQNAgent:
-    def __init__(self, state_size=30, action_size=3, learning_rate=0.001): # Changed to 3
+    def __init__(self, state_size=26, action_size=4, learning_rate=0.001): # Changed to 4
         self.state_size = state_size
         self.action_size = action_size
         self.gamma = 0.95
@@ -50,11 +50,12 @@ class DQNAgent:
         
         self.optimizer = optim.Adam(self.policy_net.parameters(), lr=learning_rate)
         
-        # STRICT MAPPING: Only your 3 actual C++ exploits
+        # STRICT MAPPING: Only your 4 actual C++ exploits
         self.action_names = [
             "BYOVD_VulnDriver",      # Action 0
             "EDR_Freeze_Thread",     # Action 1
             "Crystal_Palace_Loader", # Action 2
+            "SysWhispers4_Syscall",  # Action 3
         ]
     
     def select_action(self, state, valid_actions=None):
@@ -133,10 +134,10 @@ def test_agent():
     print("Testing DQN Agent")
     print("=" * 60)
     
-    agent = DQNAgent(state_size=30, action_size=8)
+    agent = DQNAgent(state_size=26, action_size=4)
     
-    # Dummy state (30 features, all zeros)
-    state = np.zeros(30)
+    # Dummy state (26 features, all zeros)
+    state = np.zeros(26)
     state[0] = 1.0  # EDR running
     state[5] = 1.0  # PPL enabled
     
@@ -153,10 +154,10 @@ def test_agent():
     
     print("\n3. Collecting more experiences...")
     for i in range(100):
-        s = np.random.rand(30)
-        a = random.randint(0, 7)
+        s = np.random.rand(26)
+        a = random.randint(0, 3)
         r = random.choice([100, -50, 0, 50])
-        s_next = np.random.rand(30)
+        s_next = np.random.rand(26)
         agent.remember(s, a, r, s_next, done=(r == 100))
     print(f"   Memory size: {len(agent.memory)}")
     
@@ -170,7 +171,7 @@ def test_agent():
     save_path.parent.mkdir(exist_ok=True)
     agent.save(save_path)
     
-    new_agent = DQNAgent(state_size=30, action_size=8)
+    new_agent = DQNAgent(state_size=26, action_size=4)
     new_agent.load(save_path)
     print(f"   Loaded epsilon: {new_agent.epsilon:.3f}")
     

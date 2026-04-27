@@ -55,7 +55,7 @@ assert len(_FEATURE_NAMES) == STATE_SIZE, (
 def _get_agent() -> DQNAgent:
     global _agent
     if _agent is None:
-        _agent = DQNAgent(state_size=STATE_SIZE, action_size=8)
+        _agent = DQNAgent(state_size=STATE_SIZE, action_size=4)
     return _agent
 
 def _get_behavior() -> EDRBehaviorAnalyzer:

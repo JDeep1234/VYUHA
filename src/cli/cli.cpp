@@ -1024,6 +1024,7 @@ void CLI::handleCampaignMenu() {
     fout << "T1068\n";     // BYOVD
     fout << "T1562.001\n"; // EDR-Freeze
     fout << "T1055.001\n"; // Crystal Palace
+    fout << "T1106\n";     // SysWhispers4
     fout.close();
     UI::info("Generated auto-campaign using available exploit modules.");
   } else if (choice == 2) {

@@ -123,7 +123,8 @@ std::vector<ExecutionResult> AgentCore::runCampaign(
     static const std::map<std::string, int> TECH_TO_ACTION = {
         {"T1068",      0},  // Maps to "BYOVD_VulnDriver" in Python
         {"T1562.001",  1},  // Maps to "EDR_Freeze_Thread" in Python
-        {"T1055.001",  2}   // Maps to "Crystal_Palace_Loader" in Python
+        {"T1055.001",  2},  // Maps to "Crystal_Palace_Loader" in Python
+        {"T1106",      3}   // Maps to "SysWhispers4_Syscall" in Python
     };
 
     std::vector<int> validActions;

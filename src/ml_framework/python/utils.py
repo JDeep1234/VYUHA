@@ -53,25 +53,17 @@ def get_logger(name: str, log_file: Optional[str] = None) -> logging.Logger:
 # ===========================================================================
 
 ACTIONS: List[str] = [
-    "BYOVD_RTCore",       # 0 – Load RTCore64.sys vulnerable driver
-    "BYOVD_DBUtil",       # 1 – Load DBUtil driver
-    "PPL_Bypass",         # 2 – Attempt PPL elevation/bypass
-    "Handle_Duplication", # 3 – Steal handle from privileged process
-    "Minifilter_Unload",  # 4 – Unload EDR filesystem minifilter
-    "Callback_Removal",   # 5 – Remove kernel callbacks
-    "Direct_Syscall",     # 6 – NtTerminateProcess via direct syscall
-    "Wait_Observe",       # 7 – No-op / reconnaissance
+    "BYOVD_VulnDriver",      # 0
+    "EDR_Freeze_Thread",     # 1
+    "Crystal_Palace_Loader", # 2
+    "SysWhispers4_Syscall",  # 3
 ]
 
 ACTION_TO_MITRE: Dict[int, str] = {
     0: "T1068",
     1: "T1562.001",
-    2: "T1134",
-    3: "T1055.001",
-    4: "T1574.002",
-    5: "T1562.006",
-    6: "T1055",
-    7: "T1218.002",
+    2: "T1055.001",
+    3: "T1106",
 }
 
 MITRE_TO_ACTION: Dict[str, int] = {v: k for k, v in ACTION_TO_MITRE.items()}
@@ -109,16 +101,12 @@ FEATURE_NAMES: List[str] = [
     "integrity_high",
     "integrity_system",
     "integrity_medium",
-    # Last action one-hot [20-27]
+    # Last action one-hot [20-23]
     "last_action_0",
     "last_action_1",
     "last_action_2",
     "last_action_3",
-    "last_action_4",
-    "last_action_5",
-    "last_action_6",
-    "last_action_7",
-    # Execution counters [28-29]
+    # Execution counters [24-25]
     "last_result",          # 0=success 1=blocked 2=failed 3=crash -1=none → normalised
     "consecutive_failures", # normalised 0-1
 ]
@@ -256,15 +244,15 @@ def build_state_vector(
     else:
         vec[19] = 1.0
 
-    # Last action one-hot [20-27]
-    if 0 <= last_action < 8:
+    # Last action one-hot [20-23]
+    if 0 <= last_action < 4:
         vec[20 + last_action] = 1.0
 
-    # Execution counters [28-29]
+    # Execution counters [24-25]
     # last_result normalised: -1→-0.5, 0→1.0, 1→0.0, 2→-0.25, 3→-1.0
     result_map = {-1: -0.5, 0: 1.0, 1: 0.0, 2: -0.25, 3: -1.0}
-    vec[28] = result_map.get(last_result, -0.5)
-    vec[29] = min(1.0, consec_fails / 10.0)
+    vec[24] = result_map.get(last_result, -0.5)
+    vec[25] = min(1.0, consec_fails / 10.0)
 
     return vec
 

@@ -1,431 +1,258 @@
-# VYUHA: Cross-Layer EDR Kill-Chain Evasion via Deep Reinforcement Learning-Guided Adversarial Orchestration
+<img width="1100" height="400" alt="VYUHA Architecture" src="https://github.com/user-attachments/assets/8706fbd0-6f73-4fb6-afdf-3c3273fd7bea" />
 
-> Advanced APT Simulation and EDR Evasion Assessment Platform
+<p align="center">
+  <a href="#what-is-vyuha">What is VYUHA?</a> •
+  <a href="#the-ml-loop-that-learns-every-product">ML Loop</a> •
+  <a href="#what-vyuha-exposes-today">Results</a> •
+  <a href="#attack-flow">Flow</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#module-reference">Modules</a>
+</p>
 
-VYUHA is a modular C++ framework for evaluating Endpoint Detection and Response (EDR) behavior through controlled ATT&CK-aligned simulation workflows.
+<p align="center">
+  <img alt="C++17" src="https://img.shields.io/badge/C%2B%2B-17-00599C?logo=cplusplus" />
+  <img alt="MSVC v143" src="https://img.shields.io/badge/MSVC-v143-5C2D91?logo=visualstudio" />
+  <img alt="CMake" src="https://img.shields.io/badge/CMake-3.16+-064F8C?logo=cmake" />
+  <img alt="Python" src="https://img.shields.io/badge/Python-DQN%20%2B%20SHAP-3776AB?logo=python&logoColor=white" />
+  <img alt="MITRE ATT&CK" src="https://img.shields.io/badge/MITRE-ATT%26CK%20Mapped-e6292f" />
+  <img alt="Windows 11" src="https://img.shields.io/badge/Windows-11%20x64-0078D4?logo=windows11&logoColor=white" />
+  <img alt="ACM CCS 2026" src="https://img.shields.io/badge/ACM%20CCS-2026-222222" />
+</p>
 
----
+# VYUHA
 
-## Overview
+> **Four cross-layer exploit techniques + a DQN agent that learns which sequence breaks each EDR — with transfer learning that carries knowledge across products and SHAP explanations that tell you exactly why.**
 
-VYUHA helps security teams:
+## The Problem
 
-- Assess EDR effectiveness against different technique chains
-- Simulate adversary-style workflows in a controlled lab
-- Identify detection and telemetry gaps
-- Export structured execution and analysis outputs
+A security team runs a BYOVD test against their EDR. It blocks the driver load. They check the box and move on. But they never test direct syscall invocation, which slips past the same product in two out of three attempts with a 33% detection rate. They never test reflective loading behind six evasion layers. They never learn that their EDR's user-mode hook coverage has a blind spot that an attacker with the right toolchain will find.
 
----
+The usual fix is manual red-team engagements: pick techniques one at a time, run them in sequence, write a report. But static test plans understate real-world risk. An EDR that blocks kernel-level termination may be blind to syscall-boundary evasion. A product that catches process suspension may miss reflective loading. Testing techniques individually, manually, and without adaptation is neither repeatable nor scalable.
 
-## 📊 Project Status (March 2026)
+VYUHA solves this by treating EDR evaluation as a reinforcement learning problem. The system observes how each product responds — which techniques get blocked, which generate alerts without blocking, which go undetected — and adapts its attack strategy in real time. A policy trained against one product transfers to the next, cutting convergence time by 4×. No manual sequencing, no static playbooks. Just an adversary that learns.
 
-| Component | Owner | Status | Progress |
-|-----------|-------|--------|----------|
-| **CLI, Agent Core, Integration** | Jdeep | ✅ Complete | 100% |
-| **BYOVD Exploit (T1068)** | Bipin | ✅ Complete | 100% |
-| **EDR-Freeze Exploit (T1562.001)** | Bipin | ✅ Complete | 100% |
-| **Crystal Palace UDRL (T1055.001)** | Bipin | ✅ Complete | 100% |
-| **ML Framework** | Karthik | ✅ Complete | 100% |
-## Project Status
+## What Is VYUHA?
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Core Framework (CLI, Agent Core, Integration) | Complete | Stable interactive workflow and orchestration |
-| Exploit Modules | Active | BYOVD, EDR-Freeze, and Crystal Palace implemented; additional techniques planned |
-| ML Framework | Complete | Adaptive recommendation and analysis pipeline integrated |
+VYUHA is built for blue teams and EDR vendors who need to know where their detection pipeline actually fails — not where they assume it works.
 
-**Current Capabilities:**
-- ✅ Fully interactive TUI with exploit execution
-- ✅ BYOVD kernel-level EDR process termination (T1068)
-- ✅ EDR-Freeze user-mode process suspension (T1562.001)
-- ✅ Crystal Palace UDRL — 6-layer EDR evasion chain with reflective DLL loading (T1055.001)
-- ✅ Auto-detection of 60+ EDR products
-- ✅ VM snapshot management (Hyper-V, VirtualBox, VMware)
-- ✅ Telemetry and artifact cleanup systems
-- ✅ ML-based adaptive attack strategy (DQN + SHAP + K-means, fully integrated)
-Overall status: Operational core with extensible module architecture.
+| From one evaluation target | VYUHA produces | Why it matters |
+| --- | --- | --- |
+| Kernel, user-mode, and syscall-boundary techniques | Four ATT&CK-mapped exploits executed against the target EDR | Every defensive layer gets tested, not just the one you remembered |
+| Live telemetry from process state, event logs, and EDR responses | A 26-dimensional state vector fed into a DQN agent | The next technique is chosen by observed behavior, not a static list |
+| Per-technique success rates, detection rates, and time-to-detection | Structured results exportable as JSON, CSV, HTML, or STIX 2.1 | Gaps become engineering priorities with reproducible evidence |
+| Accumulated behavioral profiles across products | K-means clustering, SHAP attribution, and transfer learning | Knowledge compounds — the second product evaluation starts where the first left off |
 
----
+## The ML Loop That Learns Every Product
+
+Every EDR evaluation is a closed feedback loop. The DQN agent picks a technique, observes the outcome, updates its Q-values, and picks again. After ~80 episodes, it converges on a product-specific policy. When a new EDR is introduced, cosine similarity over an 11-dimensional behavioral vector identifies the closest match, and the trained policy's weights transfer directly — cutting convergence from ~150 episodes to ~37.
+
+SHAP attribution runs after every failure, identifying which system properties (PPL protection, driver signature enforcement, kernel callbacks) drove the detection. K-means clustering ($k{=}4$) groups products into tiers — Enterprise Grade, Moderate Hybrid, User-Mode Focused, Basic Detection — so defenders can benchmark their deployed EDR against the landscape.
+
+## What VYUHA Exposes Today
+
+Evaluated against five EDR products. No product detected all four techniques.
+
+| | **BYOVD (T1068)** | **EDR-Freeze (T1562.001)** | **Crystal Palace (T1055.001)** | **SysWhispers4 (T1106)** |
+|---|---|---|---|---|
+| **Defender** | 67% det · 2480ms | 33% det · 3100ms | 33% det · 2895ms | 33% det · 3404ms |
+| **SentinelOne** | 100% det · 1820ms | 100% det · 1450ms | 67% det · 2553ms | 33% det · 3910ms |
+| **OpenEDR** | 0% det · — | 33% det · 3200ms | 0% det · — | 0% det · — |
+| **Huntress** | 100% det · 2150ms | 100% det · 1870ms | 67% det · 3159ms | 67% det · 2228ms |
+| **Trend Micro** | 67% det · 2880ms | 33% det · 2640ms | 67% det · 2330ms | 0% det · — |
+
+**Key findings:**
+- **SysWhispers4** has the lowest mean detection rate across all products: **27%**
+- **SentinelOne & Huntress** block kernel-level and process-suspension attacks entirely — but Crystal Palace and SysWhispers4 still get through partially
+- **OpenEDR** failed to detect three of four techniques entirely (8.3% overall mean detection)
+- **Transfer learning** delivers **3.8–4.1× speedup** in convergence across all EDR pairs
+
+## Attack Flow
+
+```
+┌─────────────────────┐
+│   Operator Interface │  Campaign spec + technique selection
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│     Agent Core       │  Execution orchestrator + telemetry monitor
+│  ┌───────────────┐   │
+│  │ Campaign Runner│──►│──── Executes recommended technique
+│  └───────────────┘   │
+└──────────┬──────────┘
+           │ state observation (26-dim vector)
+           ▼
+┌─────────────────────┐
+│  ML Analysis Engine  │  DQN action selection + reward computation
+│  ┌────┐ ┌────┐      │
+│  │DQN │ │SHAP│      │  + K-means clustering + transfer learning
+│  └────┘ └────┘      │
+└──────────┬──────────┘
+           │ action recommendation
+           ▼
+┌─────────────────────┐
+│  Exploit Deployment  │  Four modules, uniform interface
+│  ┌──────┐ ┌───────┐ │
+│  │BYOVD │ │Freeze │ │  T1068 · T1562.001 · T1055.001 · T1106
+│  └──────┘ └───────┘ │
+│  ┌───────┐ ┌──────┐ │
+│  │Crystal│ │SysW4 │ │
+│  └───────┘ └──────┘ │
+└─────────────────────┘
+           │
+           ▼
+    Feedback → Agent Core → ML Engine → next action (closed loop)
+```
 
 ## Architecture
 
-The framework follows a layered modular architecture.
+**Language:** C++17 · MSVC v143 · Windows 11 x86_64
+**ML bridge:** C++ ↔ Python via subprocess JSON protocol over anonymous pipes
+**Exploit coverage:** 70+ EDR process signatures across 17 vendor families
 
-![Architecture Diagram](https://github.com/user-attachments/assets/8706fbd0-6f73-4fb6-afdf-3c3273fd7bea)
+| Subsystem | Role |
+|---|---|
+| **Operator Interface** | CLI with numbered menus, batch mode, multi-format export (JSON/CSV/HTML/STIX 2.1) |
+| **Agent Core** | Execution orchestrator (8-state lifecycle), campaign runner, telemetry monitor (2 background threads), artifact cleaner |
+| **Exploit Deployment** | Registry of four modules with uniform metadata/execute/cleanup interface, keyed by MITRE ATT&CK ID |
+| **ML Analysis Engine** | 11-command JSON protocol: action selection, training, target sync, persistence, clustering, SHAP, transfer learning |
+| **Telemetry Monitor** | Process snapshot polling + Windows Event Log delta reads via mutex-protected buffering |
 
----
-
-## 📁 Project Structure
+## Project Structure
 
 ```
-EDR-Adaptive-Framework/
-├── CMakeLists.txt              # Main build configuration
-├── README.md
+VYUHA/
+├── CMakeLists.txt
 ├── config/
-│   └── config.yaml             # Framework configuration
-│
-├── include/                    # Header files
-│   ├── cli/
-│   │   └── cli.hpp             # CLI interface [Jdeep]
-│   ├── agent_core/
-│   │   └── agent.hpp           # Agent core [Jdeep]
-│   ├── integration/
-│   │   └── integration_manager.hpp  # EDR/VM integration [Jdeep]
+│   └── config.yaml
+├── include/
+│   ├── cli/cli.hpp
+│   ├── agent_core/agent.hpp
+│   ├── integration/integration_manager.hpp
 │   ├── exploits/
-│   │   ├── exploit_manager.hpp # Exploit techniques [BIPIN]
+│   │   ├── exploit_manager.hpp
 │   │   ├── byovd_vulndriver.hpp
 │   │   ├── edr_freeze.hpp
 │   │   └── crystal_palace_loader.hpp
+│   └── ml_framework/ml_engine.hpp
+├── src/
+│   ├── main.cpp
+│   ├── cli/cli.cpp
+│   ├── agent_core/
+│   │   ├── agent.cpp
+│   │   ├── cleaner.cpp
+│   │   ├── orchestrator.cpp
+│   │   ├── output_handler.cpp
+│   │   └── telemetry.cpp
+│   ├── exploits/
+│   │   ├── exploit_manager.cpp
+│   │   ├── byovd_vulndriver.cpp
+│   │   ├── edr_freeze.cpp
+│   │   ├── crystal_palace_loader.cpp
+│   │   └── syswhispers4_syscall.cpp
+│   ├── integration/
+│   │   ├── integration_manager.cpp
+│   │   ├── edr_connector.cpp
+│   │   ├── snapshot_manager.cpp
+│   │   └── clean_module.cpp
 │   └── ml_framework/
-│       └── ml_engine.hpp       # ML analysis [KARTHIK]
-│
-├── src/                        # Source files
-│   ├── main.cpp                # Entry point
-│   ├── cli/                    # CLI implementation [Jdeep]
-│   ├── agent_core/             # Agent core [Jdeep]
-│   ├── integration/            # Integration module [Jdeep]
-│   ├── exploits/               # Exploit scripts [BIPIN]
-│   └── ml_framework/           # ML framework [KARTHIK]
-│
-└── docs/
-    └── architecture.drawio     # Architecture diagram
-## Project Structure
-
-```text
-VYUHA/
-|-- CMakeLists.txt
-|-- README.md
-|-- config/
-|   `-- config.yaml
-|-- include/
-|   |-- cli/
-|   |   `-- cli.hpp
-|   |-- agent_core/
-|   |   `-- agent.hpp
-|   |-- integration/
-|   |   `-- integration_manager.hpp
-|   |-- exploits/
-|   |   `-- exploit_manager.hpp
-|   `-- ml_framework/
-|       `-- ml_engine.hpp
-|-- src/
-|   |-- main.cpp
-|   |-- cli/
-|   |-- agent_core/
-|   |-- integration/
-|   |-- exploits/
-|   `-- ml_framework/
-`-- docs/
-    `-- architecture.drawio
+│       ├── ml_engine.cpp
+│       ├── ml_bridge.cpp
+│       ├── detection_analyzer.cpp
+│       ├── evasion_scorer.cpp
+│       ├── event_correlator.cpp
+│       └── python/
+│           ├── ml_server.py
+│           ├── strategy_selector.py
+│           ├── adaptive_learner.py
+│           ├── behavior_analyzer.py
+│           ├── explainable_ai.py
+│           ├── train_agent.py
+│           └── utils.py
+└── contexts/
+    └── *.md                    # Per-module documentation
 ```
 
----
-
-## Building
+## Quick Start
 
 ### Prerequisites
 
+- Windows 11 x86_64 (build 22631+)
 - CMake 3.16+
-- C++17 compatible compiler (MSVC, GCC, Clang)
-- Windows SDK (for Windows API components)
+- MSVC v143 (Visual Studio 2022)
+- Python 3.10+ with `torch`, `numpy`, `shap`, `scikit-learn`
+- Administrator privileges (kernel driver operations require `SeLoadDriverPrivilege`)
 
-### Build Steps
+### Build
 
 ```bash
-# Clone repository
-git clone <repository-url>
-cd <project-directory>
+git clone git@github.com:JDeep1234/VYUHA.git
+cd VYUHA
 
-# Create build directory
 mkdir build && cd build
-
-# Configure
 cmake ..
-
-# Build
 cmake --build . --config Release
-
-# Run
-./bin/edr_framework.exe --help
 ```
 
----
-
-## Usage
-
-### Basic Commands
+### Run
 
 ```bash
-# Execute single technique
-edr_framework run -t <technique-id> --verbose
+# Interactive mode
+./bin/edr_framework.exe
 
-# Run attack campaign
-edr_framework campaign -c <campaign-file> -o <output-format>
+# Single technique
+./bin/edr_framework.exe run -t T1068 --verbose
 
-# List available techniques
-edr_framework list
+# Full campaign
+./bin/edr_framework.exe campaign -c campaign.yaml -o json
+
+# List techniques
+./bin/edr_framework.exe list
 
 # Check EDR status
-edr_framework status
-
-# Create VM snapshot
-edr_framework snapshot -s <snapshot-name>
-
-# Cleanup artifacts
-edr_framework clean --all
+./bin/edr_framework.exe status
 ```
 
-### Campaign File Example
+## Module Reference
 
-```yaml
-name: "APT Simulation Campaign"
-techniques:
-  - id: T1055
-    name: "Process Injection"
-    options:
-      target: "<target-process>"
+| ID | Module | MITRE | Layer | What It Does |
+|---|---|---|---|---|
+| 0 | **BYOVD VulnDriver** | T1068 | Kernel | Loads signed vulnerable driver (`wsftprm.sys`, CVE-2023-52271), sends IOCTL `0x22201C` to call `ZwTerminateProcess` from kernel context — bypasses PPL |
+| 1 | **EDR-Freeze** | T1562.001 | User | Exploits `WerFaultSecure.exe` race condition to suspend EDR threads via dump-lock deadlock — no driver, no child process, no file write |
+| 2 | **Crystal Palace** | T1055.001 | User | Six-layer reflective loader: XOR decrypt → module overload → CFG registration → `NtContinue` context transfer → Draugr call stack spoofing → sleep-time memory masking |
+| 3 | **SysWhispers4** | T1106 | Syscall | Resolves NT SSNs via six strategies (FreshyCalls, Hell's/Halo's/Tartarus'/RecycledGate, FromDisk), supports direct and indirect invocation with ETW/AMSI bypass |
 
-  - id: T1574.002
-    name: "DLL Side-Loading"
-    options:
-      app: "<target-application>"
+## DQN Configuration
 
-  - id: T1218.005
-    name: "Mshta Execution"
-```
+| Parameter | Value |
+|---|---|
+| State space | 26 dimensions (EDR identity, runtime state, Windows version, system config, action history) |
+| Action space | 4 discrete actions (one per exploit module) |
+| Network | 26 → 128 → 64 → 4 with ReLU + 20% dropout |
+| Optimizer | Adam, lr = 10⁻³ |
+| Replay buffer | 10,000 transitions, minibatch size 32 |
+| Target network sync | Every 10 episodes |
+| Exploration | ε-greedy: ε₀ = 1.0, ε_min = 0.01, decay = 0.995 |
+| Discount factor | γ = 0.95 |
+| Transfer threshold | Cosine similarity ≥ 0.7 |
+
+## Tested EDR Products
+
+| EDR | Tier | Primary Detection | Overall Mean Detection |
+|---|---|---|---|
+| Microsoft Defender | Moderate | Kernel callbacks, ETWTi, cloud ML | 41.5% |
+| SentinelOne | Enterprise | Behavioral AI, PPL, kernel callbacks | 75.0% |
+| OpenEDR | Basic | Open-source, process event alerts | 8.3% |
+| Huntress | Moderate | Cloud-managed, process monitoring | 83.5% |
+| Trend Micro Apex One | Moderate | Kernel callbacks, ETW, AMSI, hooks | 41.8% |
+
+## Responsible Use
+
+VYUHA is an adversarial evaluation framework for authorized security testing only. Its primary purpose is to help **blue-team defenders and EDR vendors** discover detection blind spots with reproducible evidence before real adversaries do. Use only in controlled lab environments with proper authorization.
 
 ---
 
-## MITRE ATT&CK Coverage
-
-### Implemented Techniques
-
-| Technique ID | Name | Tactic | Status | Owner |
-|--------------|------|--------|--------|-------|
-| **T1068** | **BYOVD - Exploitation for Privilege Escalation** | **Defense Evasion, Privilege Escalation** | **✅ 100%** | **Bipin** |
-| **T1562.001** | **EDR-Freeze - Impair Defenses (Process Suspension)** | **Defense Evasion** | **✅ 100%** | **Bipin** |
-| **T1055.001** | **Crystal Palace UDRL - Reflective DLL Loading** | **Defense Evasion, Execution** | **✅ 100%** | **Bipin** |
-| Technique ID | Name | Tactic | Status |
-|--------------|------|--------|--------|
-| T1068 | BYOVD - Exploitation for Privilege Escalation | Defense Evasion, Privilege Escalation | Implemented |
-| T1562.001 | EDR-Freeze - Impair Defenses (Process Suspension) | Defense Evasion | Implemented |
-| T1055.001 | Crystal Palace UDRL - Dynamic-link Library Injection | Defense Evasion | Implemented |
-
-### Planned Techniques
-
-| Technique ID | Name | Tactic | Status |
-|--------------|------|--------|--------|
-| T1055 | Process Injection (additional variants) | Defense Evasion | Planned |
-| T1218.002 | Control Panel | Defense Evasion | Planned |
-| T1218.005 | Mshta | Defense Evasion | Planned |
-| T1574.002 | DLL Side-Loading | Persistence | Planned |
-
----
-
-## Module Details
-
-### Core Modules (CLI, Agent Core, Integration)
-
-### 🟠 Bipin's Module (Exploit Scripts) - ✅ 3/3 Techniques Complete
-Status: Implemented and tested.
-
-- CLI: interactive operation, command routing, technique orchestration
-- Agent Core: execution orchestration, telemetry handling, artifact cleanup
-- Integration: EDR connectors, snapshot manager, environment helpers
-
-**Development Status:**
-- **3 Major Techniques Implemented**
-- **3 Techniques Fully Implemented and Tested (100%)**
-### Exploit Modules
-
-Status: Implemented techniques plus extensible interface for additional techniques.
-
-Implemented:
-- BYOVD (T1068)
-- EDR-Freeze (T1562.001)
-- Crystal Palace UDRL (T1055.001)
-
-Planned:
-- Process Injection (T1055)
-- Control Panel (T1218.002)
-- Mshta (T1218.005)
-- DLL Side-Loading (T1574.002)
-
-#### BYOVD (T1068)
-
-- Driver-assisted process control workflow
-- Configurable target selection (auto-detect or manual)
-- Cleanup sequence for handles/services/artifacts
-
-#### EDR-Freeze (T1562.001)
-
-- User-mode process suspension workflow
-- Configurable freeze duration and target selection
-- Reversible execution path with cleanup support
-
-#### Crystal Palace UDRL (T1055.001)
-
-- Reflective loader workflow for staged payload execution
-- Configurable blob path and execution options
-- Integrated into the same exploit manager and campaign flow
-
-### ML Framework
-
-Status: Implemented and integrated with campaign execution flow.
-
-Core components include:
-- Scoring and analysis pipeline
-- Strategy selection and adaptive learning
-- Explainability helpers
-- JSON-based Python bridge and model utilities
-
-#### ✅ Implemented: Crystal Palace UDRL (Reflective DLL Loading) - T1055.001
-
-**Status:** 100% Complete and Tested
-
-**Based on:** [KaplaStrike](https://github.com/kapla0011/KaplaStrike) by @kapla  
-**Technical Reference:** [Bypassing EDR in a Crystal Clear Way](https://lorenzomeacci.com/bypassing-edr-in-a-crystal-clear-way)
-
-**Exploit Flow:**
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  Crystal Palace UDRL - 6-Layer EDR Evasion Chain           │
-│  Self-Contained Position-Independent Code (PIC) Blob       │
-└─────────────────────────────────────────────────────────────┘
-
-[PREP] Build PIC blob with KaplaStrike:
-       cd KaplaStrike && make x64
-       ./link spec/loader.spec beacon.dll output.bin
-       ↓ Produces self-contained blob with all evasion layers
-
-[Step 1/3] Read blob from disk
-           ↓ Load output.bin into process memory
-
-[Step 2/3] Allocate executable memory (RW → RX)
-           ↓ VirtualAlloc PAGE_READWRITE, copy blob
-           ↓ VirtualProtect → PAGE_EXECUTE_READ
-           ↓ (Avoids RWX IOC that EDRs flag)
-
-[Step 3/3] Call blob entry point: go()
-           ↓ NtContinue transfers execution (does NOT return)
-           ↓ Process becomes the beacon
-
-── Inside the blob, 6 evasion layers fire automatically: ──
-
-  Layer 1: XOR Payload Decryption
-           ↓ findAppendedDLL() + findMask()
-           ↓ Rolling XOR decrypts beacon DLL in-place
-
-  Layer 2: Module Overloading
-           ↓ NtCreateSection + NtMapViewOfSection
-           ↓ Overwrites legitimate DLL (WsmSvc.dll) in memory
-           ↓ EDR sees backed (legitimate) memory, not shellcode
-
-  Layer 3: .pdata Registration
-           ↓ RtlAddFunctionTable registers exception handlers
-           ↓ Stack unwinding looks legitimate to EDR
-
-  Layer 4: NtContinue Entry Transfer
-           ↓ Synthetic BaseThreadInitThunk stack frames
-           ↓ RtlUserThreadStart spoofed origin
-           ↓ Thread appears to originate from kernel32.dll
-
-  Layer 5: API Call Stack Spoofing (Draugr)
-           ↓ Every Win32 API call proxied via gadget
-           ↓ archiveint.dll gadget masks true caller
-           ↓ EDR stack traces show legitimate DLL frames
-
-  Layer 6: Sleep Masking
-           ↓ IAT-hooked Sleep() function
-           ↓ XOR-encrypts beacon memory during sleep
-           ↓ Periodic memory scans find only encrypted bytes
-
-  ✓ Beacon running with full C2 capability
-  ✓ EDR monitoring shows zero alerts
-```
-
-**Capabilities:**
-- ✅ Evades static signature scanning (XOR-encrypted payload on disk)
-- ✅ Evades memory scanning (Module Overloading + Sleep masking)
-- ✅ Evades stack trace analysis (NtContinue + Draugr spoofing)
-- ✅ No RWX memory pages (RW→RX two-step allocation)
-- ✅ Self-contained PIC blob — zero framework-side evasion code
-- ✅ Works with custom DLL payloads (reverse shells, C2 beacons)
-- ✅ Living-off-the-Land memory components (WsmSvc.dll, archiveint.dll)
-
-**Tested Against:**
-- Microsoft Defender (Windows 10/11) — ✅ Evaded
-- Static analysis — ✅ Evaded (XOR encryption)
-- Memory scanning — ✅ Evaded (Module Overloading)
-
-**Technical Details:**
-- **MITRE ATT&CK:** T1055.001 (Process Injection: DLL Injection via RDLL)
-- **Blob Format:** Crystal Palace PIC (Position-Independent Code)
-- **Sections:** `[loader code] [PICO code] [cobalt_dll (XOR)] [cobalt_mask]`
-- **Entry Point:** `go()` at blob offset 0
-- **Key APIs:** NtCreateSection, NtMapViewOfSection, NtContinue, RtlAddFunctionTable
-- **Sacrificial DLL:** WsmSvc.dll (Module Overloading target)
-- **Spoofing Gadget:** archiveint.dll (Draugr call stack spoofing)
-
-**Evasion Comparison:**
-
-| Attack | Method | Impact | Stealth |
-|--------|--------|--------|--------|
-| **BYOVD** | Kill EDR process via kernel driver | EDR goes offline | ⚠️ SOC sees sensor offline |
-| **EDR-Freeze** | Suspend EDR via WerFault deadlock | EDR frozen temporarily | ⚠️ EDR resumes after release |
-| **Crystal Palace** | Invisible C2 beacon behind 6 evasion layers | Persistent silent access | ✅ EDR stays running, zero alerts |
-
-📖 **Full Documentation:** [CRYSTAL_PALACE_USAGE.md](contexts/CRYSTAL_PALACE_USAGE.md)
-
----
-
-**How to Add New Exploit:**
-```cpp
-// In src/exploits/your_exploit.cpp
-class YourExploit : public BaseExploit {
-public:
-    ExploitResult execute(const std::map<std::string, std::string>& options) override {
-        // Your implementation
-    }
-    
-    TechniqueInfo getInfo() const override {
-        // Return MITRE info
-    }
-};
-```
-Integration flow:
-
-```text
-CLI command
-  -> AgentCore::runCampaign(...)
-     -> mlEngine.recommendAction(...)
-     -> exploitManager.execute(...)
-     -> mlEngine.analyze(...)
-```
-
-See detailed design: [src/ml_framework/DESIGN.md](src/ml_framework/DESIGN.md)
-
----
-
-## Supported EDRs
-
-| EDR | Integration Status |
-|-----|--------------------|
-| Microsoft Defender | Implemented |
-| CrowdStrike Falcon | API-ready |
-| VMware Carbon Black | API-ready |
-| SentinelOne | Planned |
-| Sophos | Planned |
-
----
-
-## VM Providers
-
-| Provider | Status |
-|----------|--------|
-| Hyper-V | Implemented |
-| VirtualBox | Implemented |
-| VMware Workstation | Implemented |
-
----
+<p align="center">
+  <sub>ACM CCS 2026 · Cross-Layer EDR Kill-Chain Evasion via Deep Reinforcement Learning-Guided Adversarial Orchestration</sub>
+</p>

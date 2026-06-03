@@ -71,7 +71,7 @@ Evaluated against five EDR products. No product detected all four techniques.
 - **Transfer learning** delivers **3.8–4.1× speedup** in convergence across all EDR pairs
 
 ## Attack Flow
-<img width="1448" height="1086" alt="image" src="https://github.com/user-attachments/assets/2f2e220f-9f77-4a3c-9b09-0339d5a680e0" />
+<img width="1668" height="1144" alt="image" src="https://github.com/user-attachments/assets/6f252d44-b62e-4c9c-b1b1-f4dc88a69ad7" />
 
 ## Architecture
 

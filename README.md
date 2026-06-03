@@ -1,4 +1,7 @@
-<img width="1100" height="400" alt="VYUHA Architecture" src="https://github.com/user-attachments/assets/8706fbd0-6f73-4fb6-afdf-3c3273fd7bea" />
+
+<p align="center">
+  <img align="center" width="124" height="126" alt="image" src="https://github.com/user-attachments/assets/c05ebf3d-9e2d-4e6e-823c-d684edf3bc3b" />
+</p>
 
 <p align="center">
   <a href="#what-is-vyuha">What is VYUHA?</a> •

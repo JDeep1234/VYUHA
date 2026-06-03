@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img align="center" width="124" height="126" alt="image" src="https://github.com/user-attachments/assets/c05ebf3d-9e2d-4e6e-823c-d684edf3bc3b" />
+  <img align="center" width="200" height="200" alt="image" src="https://github.com/user-attachments/assets/c05ebf3d-9e2d-4e6e-823c-d684edf3bc3b" />
 </p>
 
 <p align="center">
@@ -71,44 +71,13 @@ Evaluated against five EDR products. No product detected all four techniques.
 - **Transfer learning** delivers **3.8–4.1× speedup** in convergence across all EDR pairs
 
 ## Attack Flow
-
-```
-┌─────────────────────┐
-│   Operator Interface │  Campaign spec + technique selection
-└──────────┬──────────┘
-           │
-           ▼
-┌─────────────────────┐
-│     Agent Core       │  Execution orchestrator + telemetry monitor
-│  ┌───────────────┐   │
-│  │ Campaign Runner│──►│──── Executes recommended technique
-│  └───────────────┘   │
-└──────────┬──────────┘
-           │ state observation (26-dim vector)
-           ▼
-┌─────────────────────┐
-│  ML Analysis Engine  │  DQN action selection + reward computation
-│  ┌────┐ ┌────┐      │
-│  │DQN │ │SHAP│      │  + K-means clustering + transfer learning
-│  └────┘ └────┘      │
-└──────────┬──────────┘
-           │ action recommendation
-           ▼
-┌─────────────────────┐
-│  Exploit Deployment  │  Four modules, uniform interface
-│  ┌──────┐ ┌───────┐ │
-│  │BYOVD │ │Freeze │ │  T1068 · T1562.001 · T1055.001 · T1106
-│  └──────┘ └───────┘ │
-│  ┌───────┐ ┌──────┐ │
-│  │Crystal│ │SysW4 │ │
-│  └───────┘ └──────┘ │
-└─────────────────────┘
-           │
-           ▼
-    Feedback → Agent Core → ML Engine → next action (closed loop)
-```
+<img width="1448" height="1086" alt="image" src="https://github.com/user-attachments/assets/2f2e220f-9f77-4a3c-9b09-0339d5a680e0" />
 
 ## Architecture
+
+<img width="1342" height="690" alt="image" src="https://github.com/user-attachments/assets/8f867ee7-cc62-4672-be5b-8e8e93f47c06" />
+
+
 
 **Language:** C++17 · MSVC v143 · Windows 11 x86_64
 **ML bridge:** C++ ↔ Python via subprocess JSON protocol over anonymous pipes

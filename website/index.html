@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="VYUHA documentation hub for the major project report, architecture, evaluation results, poster, presentation, and source artifacts."
+    />
+    <title>VYUHA Documentation | Cross-Layer EDR Evaluation</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <canvas id="signal-canvas" aria-hidden="true"></canvas>
+    <div class="ambient-grid" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="VYUHA documentation home">
+        <img src="assets/RV_logoVec.png" alt="RV College of Engineering logo" />
+        <span>VYUHA Docs</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#overview">Overview</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#evaluation">Evaluation</a>
+        <a href="#downloads">Downloads</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">Major project documentation</p>
+          <h1 id="hero-title">VYUHA</h1>
+          <p class="hero-subtitle">
+            Cross-layer EDR kill-chain evasion evaluation with adaptive
+            reinforcement learning orchestration.
+          </p>
+          <p class="hero-body">
+            A controlled academic framework for validating endpoint detection
+            and response behavior across kernel, user-mode, memory, telemetry,
+            and policy-decision layers.
+          </p>
+          <div class="hero-actions" aria-label="Primary document actions">
+            <a class="button primary" href="assets/VYUHA-Major-Project-Report.pdf" target="_blank" rel="noreferrer">
+              <span>PDF</span>
+              Open Report
+            </a>
+            <a class="button" href="assets/VYUHA-Project-Presentation.pptx" download>
+              <span>PPT</span>
+              Download Deck
+            </a>
+            <a class="button" href="https://github.com/JDeep1234/EDR-Adaptive-Framework" target="_blank" rel="noreferrer">
+              <span>GH</span>
+              Source Code
+            </a>
+          </div>
+        </div>
+
+        <aside class="hero-panel" aria-label="Project snapshot">
+          <div class="poster-window">
+            <img src="assets/VYUHA-Poster.png" alt="Preview of the VYUHA project poster" />
+          </div>
+          <div class="snapshot-grid">
+            <div>
+              <strong>60</strong>
+              <span>attack instances</span>
+            </div>
+            <div>
+              <strong>5</strong>
+              <span>EDR products</span>
+            </div>
+            <div>
+              <strong>80</strong>
+              <span>DQN episodes</span>
+            </div>
+            <div>
+              <strong>4.1x</strong>
+              <span>faster transfer convergence</span>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section overview-band" id="overview" aria-labelledby="overview-title">
+        <div class="section-heading">
+          <p class="eyebrow">Overview</p>
+          <h2 id="overview-title">A reproducible defensive validation loop</h2>
+        </div>
+        <div class="overview-layout">
+          <p>
+            VYUHA treats endpoint security testing as an adaptive experiment.
+            Each run records the attempted action, observed defensive response,
+            detection status, block behavior, time-to-detection, and cleanup
+            state so the final evidence is measurable instead of anecdotal.
+          </p>
+          <div class="pill-list" aria-label="Research scope">
+            <span>Authorized Windows 11 VM lab</span>
+            <span>Commercial and open EDR comparison</span>
+            <span>Explainability with SHAP and clustering</span>
+            <span>Policy learning with DQN selectors</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section module-band" aria-labelledby="modules-title">
+        <div class="section-heading">
+          <p class="eyebrow">Technique modules</p>
+          <h2 id="modules-title">Four pressure points under one evaluator</h2>
+        </div>
+        <div class="module-grid">
+          <article class="module-card">
+            <span>01</span>
+            <h3>BYOVD Engine</h3>
+            <p>Tests resilience against vulnerable signed-driver abuse in a controlled kernel-level scenario.</p>
+          </article>
+          <article class="module-card">
+            <span>02</span>
+            <h3>EDR-Freeze</h3>
+            <p>Measures process-health assumptions and response behavior when protected processes are suspended.</p>
+          </article>
+          <article class="module-card">
+            <span>03</span>
+            <h3>Crystal Palace</h3>
+            <p>Evaluates in-memory execution visibility through layered reflective-loading behavior.</p>
+          </article>
+          <article class="module-card">
+            <span>04</span>
+            <h3>SysWhispers4</h3>
+            <p>Assesses user-mode hook coverage through direct syscall invocation paths.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section visual-band" id="architecture" aria-labelledby="architecture-title">
+        <div class="section-heading">
+          <p class="eyebrow">Architecture</p>
+          <h2 id="architecture-title">From technique execution to explainable evidence</h2>
+        </div>
+        <div class="visual-grid">
+          <figure class="feature-figure">
+            <img src="assets/vyuha_architecture.png" alt="VYUHA architecture diagram" />
+            <figcaption>System architecture</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/workflow_methodology.png" alt="VYUHA workflow methodology diagram" />
+            <figcaption>Methodology workflow</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/evaluation_pipeline.png" alt="VYUHA evaluation pipeline diagram" />
+            <figcaption>Evaluation pipeline</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="section evaluation-band" id="evaluation" aria-labelledby="evaluation-title">
+        <div class="section-heading">
+          <p class="eyebrow">Evaluation</p>
+          <h2 id="evaluation-title">Measured across five endpoint defenses</h2>
+        </div>
+        <div class="evaluation-layout">
+          <div class="result-copy">
+            <p>
+              The report evaluates Microsoft Defender, SentinelOne, OpenEDR,
+              Huntress, and Trend Micro Apex One. The DQN selector learns
+              product-specific policies, while explainability analysis shows
+              which defensive properties influenced technique selection.
+            </p>
+            <a class="inline-link" href="assets/VYUHA-Major-Project-Report.pdf" target="_blank" rel="noreferrer">
+              Read the complete evaluation
+            </a>
+          </div>
+          <div class="stat-stack" aria-label="Evaluation statistics">
+            <div><strong>27%</strong><span>lowest mean detection rate for direct syscall invocation</span></div>
+            <div><strong>3.8-4.1x</strong><span>transfer policy convergence improvement</span></div>
+            <div><strong>60</strong><span>cross-product attack instances in the evaluation matrix</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section downloads-band" id="downloads" aria-labelledby="downloads-title">
+        <div class="section-heading">
+          <p class="eyebrow">Downloads</p>
+          <h2 id="downloads-title">Report, presentation, poster, and repository</h2>
+        </div>
+        <div class="artifact-layout">
+          <figure class="poster-preview">
+            <img src="assets/VYUHA-Poster.png" alt="Preview of the VYUHA project poster" />
+            <figcaption>VYUHA EDR evaluation poster</figcaption>
+          </figure>
+          <div class="artifact-list">
+            <a href="assets/VYUHA-Major-Project-Report.pdf" target="_blank" rel="noreferrer">
+              <span>PDF</span>
+              <strong>Major Project Report</strong>
+              <small>Open the full academic report</small>
+            </a>
+            <a href="assets/VYUHA-Project-Presentation.pptx" download>
+              <span>PPT</span>
+              <strong>Project Presentation</strong>
+              <small>Download the PowerPoint deck</small>
+            </a>
+            <a href="assets/VYUHA-Poster.pdf" target="_blank" rel="noreferrer">
+              <span>POSTER</span>
+              <strong>Research Poster</strong>
+              <small>Open the printable poster PDF</small>
+            </a>
+            <a href="https://github.com/JDeep1234/EDR-Adaptive-Framework" target="_blank" rel="noreferrer">
+              <span>CODE</span>
+              <strong>GitHub Repository</strong>
+              <small>View project artifacts and source</small>
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        Bandaru Jnyanadeep, Bipin Raj C, and Karthik Prakash &middot; RV College of Engineering &middot; CY481P &middot; 2025-26
+      </p>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
